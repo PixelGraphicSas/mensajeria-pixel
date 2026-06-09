@@ -836,13 +836,16 @@ function cargarMisSolicitudes() {
   if (unsubscribeSolicitudes) unsubscribeSolicitudes();
   unsubscribeSolicitudes = db.collection('solicitudes')
     .where('solicitante', '==', currentUser)
-    .orderBy('fechaCreacion', 'desc')
-    .limit(30)
     .onSnapshot(function(snap) {
       var lista = [];
       snap.forEach(function(doc) { lista.push({ id: doc.id, ...doc.data() }); });
+      lista.sort(function(a, b) {
+        var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
+        var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
+        return tb - ta;
+      });
       renderMisSolicitudes(lista);
-    }, function(err) { console.error(err); });
+    }, function(err) { console.error('Error solicitudes:', err); });
 }
 
 function renderMisSolicitudes(lista) {
@@ -900,14 +903,18 @@ function cargarSolicitudesMensajero() {
 
   unsubscribeMensajero = db.collection('solicitudes')
     .where('estado', '==', estado)
-    .orderBy('prioridadOrder', 'asc')
-    .orderBy('fechaCreacion', 'asc')
     .onSnapshot(function(snap) {
       var lista = [];
       snap.forEach(function(doc) { lista.push({ id: doc.id, ...doc.data() }); });
+      lista.sort(function(a, b) {
+        if (a.prioridadOrder !== b.prioridadOrder) return a.prioridadOrder - b.prioridadOrder;
+        var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
+        var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
+        return ta - tb;
+      });
       document.getElementById('msg-count-label').textContent = lista.length + ' solicitud' + (lista.length !== 1 ? 'es' : '') + ' ' + msgCurrentTab.replace('-', ' ');
       renderMensajero(lista);
-    }, function(err) { console.error(err); });
+    }, function(err) { console.error('Error mensajero:', err); });
 }
 
 function renderMensajero(lista) {
