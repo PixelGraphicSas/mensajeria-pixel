@@ -381,11 +381,51 @@
     text-align: center; font-size: 14px; color: var(--text-2);
   }
 
-  @media (max-width: 600px) {
-    .form-grid { grid-template-columns: 1fr; }
-    .login-roles { grid-template-columns: 1fr; }
-    .main-content { padding: 20px 16px; }
+  /* ─── PANEL ADMIN ─── */
+  .admin-content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .admin-section { margin-bottom: 36px; }
+  .admin-section-title {
+    font-size: 11px; font-weight: 600; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
   }
+  .admin-section-title::before { content:''; display:block; width:3px; height:12px; background:var(--accent); border-radius:2px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; }
+  .kpi-label { font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+  .kpi-value { font-size: 28px; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: -1px; }
+  .kpi-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .kpi-accent { color: var(--accent); } .kpi-danger { color: var(--danger); } .kpi-warning { color: var(--warning); } .kpi-info { color: var(--info); }
+  .filter-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+  .filter-bar label { font-size: 13px; color: var(--text-2); white-space: nowrap; }
+  .filter-bar .form-input { width: auto; flex: 1; min-width: 130px; max-width: 180px; }
+  .btn-filter { padding: 9px 18px; border-radius: var(--radius); background: var(--accent); color: #0D1117; border: none; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity var(--transition); white-space: nowrap; }
+  .btn-filter:hover { opacity: 0.85; }
+  .btn-filter.secondary { background: var(--surface2); color: var(--text-2); border: 1px solid var(--border); }
+  .btn-filter.secondary:hover { color: var(--text); border-color: var(--accent); }
+  .charts-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+  .chart-title { font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 16px; }
+  .tabla-wrap { overflow-x: auto; }
+  .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tabla th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .tabla td { padding: 11px 14px; border-bottom: 1px solid rgba(48,54,61,0.5); vertical-align: middle; }
+  .tabla tr:last-child td { border-bottom: none; }
+  .tabla tr:hover td { background: var(--surface2); }
+  .tabla-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-3); }
+  .tabla-nombre { font-weight: 600; }
+  .usuarios-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .usuario-item { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; }
+  .usuario-nombre { font-size: 13px; font-weight: 500; }
+  .btn-del-user { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; transition: color var(--transition), background var(--transition); }
+  .btn-del-user:hover { color: var(--danger); background: var(--danger-dim); }
+  .add-user-row { display: flex; gap: 8px; margin-top: 12px; }
+  .add-user-row .form-input { flex: 1; }
+  .btn-add-user { padding: 10px 16px; border-radius: var(--radius); background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+  .btn-add-user:hover { border-color: var(--accent); color: var(--accent); }
+  @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } .charts-grid { grid-template-columns: 1fr; } .usuarios-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .login-roles { grid-template-columns: 1fr; } .main-content { padding: 20px 16px; } .admin-content { padding: 20px 16px; } .kpi-grid { grid-template-columns: repeat(2,1fr); } }
 </style>
 </head>
 <body>
@@ -561,18 +601,103 @@
     </div>
   </div>
 
-  <!-- VISTA ADMIN (placeholder fase 2) -->
+  <!-- VISTA ADMIN -->
   <div id="view-admin" style="display:none">
-    <div class="main-content">
-      <div class="section-header">
-        <div class="section-title">Panel administrativo</div>
-        <div class="section-sub">Dashboard, indicadores y gestión de usuarios — disponible en la siguiente fase</div>
+    <div class="admin-content">
+
+      <!-- Filtro fechas -->
+      <div class="filter-bar">
+        <label>Desde</label>
+        <input type="date" class="form-input" id="filtro-desde">
+        <label>Hasta</label>
+        <input type="date" class="form-input" id="filtro-hasta">
+        <button class="btn-filter" onclick="aplicarFiltro()">Aplicar filtro</button>
+        <button class="btn-filter secondary" onclick="limpiarFiltro()">Ver todo</button>
+        <button class="btn-filter secondary" onclick="exportarExcel()" style="margin-left:auto">⬇ Exportar Excel</button>
       </div>
-      <div class="empty-state">
-        <div class="empty-icon">🚀</div>
-        <div class="empty-title">Próximamente</div>
-        <div class="empty-sub">El panel administrativo con indicadores, gráficas y exportación Excel se construye en la Fase 2</div>
+
+      <!-- KPIs fila 1: estado actual -->
+      <div class="admin-section">
+        <div class="admin-section-title">Estado actual</div>
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Total en período</div><div class="kpi-value kpi-accent" id="kpi-total">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Pendientes</div><div class="kpi-value kpi-warning" id="kpi-pendiente">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">En camino</div><div class="kpi-value kpi-info" id="kpi-encamino">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Completadas</div><div class="kpi-value kpi-accent" id="kpi-completada">—</div></div>
+        </div>
       </div>
+
+      <!-- KPIs fila 2: composición -->
+      <div class="admin-section">
+        <div class="admin-section-title">Composición</div>
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-label">Empresariales</div><div class="kpi-value" id="kpi-empresarial">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Personales</div><div class="kpi-value" id="kpi-personal">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Envíos</div><div class="kpi-value kpi-info" id="kpi-envio">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Recogidas</div><div class="kpi-value kpi-accent" id="kpi-recogida">—</div></div>
+        </div>
+      </div>
+
+      <!-- Gráficas -->
+      <div class="admin-section">
+        <div class="admin-section-title">Análisis gráfico</div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-title">Solicitudes por persona</div>
+            <div class="chart-wrap"><canvas id="chart-personas" height="220"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Tipo de diligencia</div>
+            <div class="chart-wrap"><canvas id="chart-tipo" height="200"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Prioridad</div>
+            <div class="chart-wrap"><canvas id="chart-prioridad" height="200"></canvas></div>
+          </div>
+        </div>
+        <div class="charts-grid" style="grid-template-columns:1fr 1fr;margin-bottom:0">
+          <div class="chart-card">
+            <div class="chart-title">Categoría (Envío / Recogida)</div>
+            <div class="chart-wrap"><canvas id="chart-categoria" height="200"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Estado</div>
+            <div class="chart-wrap"><canvas id="chart-estado" height="200"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla recientes -->
+      <div class="admin-section">
+        <div class="admin-section-title">Solicitudes recientes</div>
+        <div class="chart-card">
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead>
+                <tr>
+                  <th>ID</th><th>Fecha</th><th>Solicitante</th><th>Contacto / Empresa</th>
+                  <th>Dirección</th><th>Municipio</th><th>Tipo</th><th>Prioridad</th>
+                  <th>Categoría</th><th>Estado</th><th>Inicio</th><th>Fin</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gestión usuarios -->
+      <div class="admin-section">
+        <div class="admin-section-title">Gestión de solicitantes</div>
+        <div class="chart-card">
+          <div class="usuarios-grid" id="usuarios-grid"></div>
+          <div class="add-user-row">
+            <input class="form-input" id="nuevo-usuario" type="text" placeholder="Nombre completo del nuevo solicitante">
+            <button class="btn-add-user" onclick="agregarUsuario()">+ Agregar</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -588,6 +713,10 @@
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- SheetJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
 
 <script>
@@ -743,6 +872,7 @@ function enterApp(role) {
     initMensajero();
   } else if (role === 'admin') {
     document.getElementById('view-admin').style.display = 'block';
+    initAdmin();
   }
 }
 
@@ -992,6 +1122,302 @@ function showToast(msg, type) {
   t.className = 'toast ' + (type || '');
   t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+// ─── ADMIN ───
+var adminData = [];
+var chartPersonas, chartTipo, chartPrioridad, chartCategoria, chartEstado;
+var adminUsuarios = [];
+
+function initAdmin() {
+  // Fechas default: mes actual
+  var hoy = new Date();
+  var primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  document.getElementById('filtro-desde').value = primerDia.toISOString().split('T')[0];
+  document.getElementById('filtro-hasta').value = hoy.toISOString().split('T')[0];
+  cargarTodosLosDatos();
+  renderUsuariosAdmin();
+}
+
+function cargarTodosLosDatos() {
+  db.collection('solicitudes').get().then(function(snap) {
+    adminData = [];
+    snap.forEach(function(doc) { adminData.push({ id: doc.id, ...doc.data() }); });
+    aplicarFiltro();
+  });
+}
+
+function aplicarFiltro() {
+  var desde = document.getElementById('filtro-desde').value;
+  var hasta = document.getElementById('filtro-hasta').value;
+  var filtered = adminData;
+
+  if (desde) {
+    var desdeTs = new Date(desde + 'T00:00:00').getTime() / 1000;
+    filtered = filtered.filter(function(s) {
+      return s.fechaCreacion && s.fechaCreacion.seconds >= desdeTs;
+    });
+  }
+  if (hasta) {
+    var hastaTs = new Date(hasta + 'T23:59:59').getTime() / 1000;
+    filtered = filtered.filter(function(s) {
+      return s.fechaCreacion && s.fechaCreacion.seconds <= hastaTs;
+    });
+  }
+
+  filtered.sort(function(a, b) {
+    var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
+    var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
+    return tb - ta;
+  });
+
+  renderKPIs(filtered);
+  renderCharts(filtered);
+  renderTabla(filtered.slice(0, 20));
+}
+
+function limpiarFiltro() {
+  document.getElementById('filtro-desde').value = '';
+  document.getElementById('filtro-hasta').value = '';
+  var sorted = adminData.slice().sort(function(a,b){
+    var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
+    var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
+    return tb - ta;
+  });
+  renderKPIs(sorted);
+  renderCharts(sorted);
+  renderTabla(sorted.slice(0, 20));
+}
+
+function renderKPIs(data) {
+  var total = data.length;
+  var pendiente = data.filter(function(s){ return s.estado === 'Pendiente'; }).length;
+  var encamino = data.filter(function(s){ return s.estado === 'En camino'; }).length;
+  var completada = data.filter(function(s){ return s.estado === 'Completada'; }).length;
+  var empresarial = data.filter(function(s){ return s.tipo === 'Empresarial'; }).length;
+  var personal = data.filter(function(s){ return s.tipo === 'Personal'; }).length;
+  var envio = data.filter(function(s){ return s.categoria === 'Envío'; }).length;
+  var recogida = data.filter(function(s){ return s.categoria === 'Recogida'; }).length;
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-pendiente').textContent = pendiente;
+  document.getElementById('kpi-encamino').textContent = encamino;
+  document.getElementById('kpi-completada').textContent = completada;
+  document.getElementById('kpi-empresarial').textContent = empresarial;
+  document.getElementById('kpi-personal').textContent = personal;
+  document.getElementById('kpi-envio').textContent = envio;
+  document.getElementById('kpi-recogida').textContent = recogida;
+}
+
+function renderCharts(data) {
+  // Colores base
+  var C = { accent:'#00E5A0', danger:'#F85149', warning:'#E3B341', info:'#58A6FF', purple:'#BF7FFF', border:'#30363D', text2:'#8B949E' };
+
+  Chart.defaults.color = C.text2;
+  Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+
+  // ── Por persona (barras) ──
+  var personCount = {};
+  data.forEach(function(s){ personCount[s.solicitante] = (personCount[s.solicitante] || 0) + 1; });
+  var personEntries = Object.entries(personCount).sort(function(a,b){ return b[1]-a[1]; }).slice(0,12);
+
+  if (chartPersonas) chartPersonas.destroy();
+  chartPersonas = new Chart(document.getElementById('chart-personas'), {
+    type: 'bar',
+    data: {
+      labels: personEntries.map(function(e){ return e[0]; }),
+      datasets: [{ data: personEntries.map(function(e){ return e[1]; }), backgroundColor: C.accent + 'CC', borderColor: C.accent, borderWidth: 1, borderRadius: 4 }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: C.border + '66' }, ticks: { maxRotation: 35, font: { size: 11 } } },
+        y: { grid: { color: C.border + '66' }, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+
+  // ── Tipo ──
+  var empCount = data.filter(function(s){ return s.tipo==='Empresarial'; }).length;
+  var perCount = data.filter(function(s){ return s.tipo==='Personal'; }).length;
+  if (chartTipo) chartTipo.destroy();
+  chartTipo = new Chart(document.getElementById('chart-tipo'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Empresarial','Personal'],
+      datasets: [{ data: [empCount, perCount], backgroundColor: [C.info+'CC', C.purple+'CC'], borderColor: [C.info, C.purple], borderWidth: 1 }]
+    },
+    options: { plugins: { legend: { position:'bottom', labels:{ boxWidth:12, padding:12 } } }, cutout:'65%' }
+  });
+
+  // ── Prioridad ──
+  var altaCount = data.filter(function(s){ return s.prioridad==='Alta'; }).length;
+  var mediaCount = data.filter(function(s){ return s.prioridad==='Media'; }).length;
+  if (chartPrioridad) chartPrioridad.destroy();
+  chartPrioridad = new Chart(document.getElementById('chart-prioridad'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Alta','Media'],
+      datasets: [{ data: [altaCount, mediaCount], backgroundColor: [C.danger+'CC', C.warning+'CC'], borderColor: [C.danger, C.warning], borderWidth: 1 }]
+    },
+    options: { plugins: { legend: { position:'bottom', labels:{ boxWidth:12, padding:12 } } }, cutout:'65%' }
+  });
+
+  // ── Categoría ──
+  var envioCount = data.filter(function(s){ return s.categoria==='Envío'; }).length;
+  var recogidaCount = data.filter(function(s){ return s.categoria==='Recogida'; }).length;
+  if (chartCategoria) chartCategoria.destroy();
+  chartCategoria = new Chart(document.getElementById('chart-categoria'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Envío','Recogida'],
+      datasets: [{ data: [envioCount, recogidaCount], backgroundColor: [C.info+'CC', C.accent+'CC'], borderColor: [C.info, C.accent], borderWidth: 1 }]
+    },
+    options: { plugins: { legend: { position:'bottom', labels:{ boxWidth:12, padding:12 } } }, cutout:'65%' }
+  });
+
+  // ── Estado ──
+  var pendCount = data.filter(function(s){ return s.estado==='Pendiente'; }).length;
+  var camCount = data.filter(function(s){ return s.estado==='En camino'; }).length;
+  var compCount = data.filter(function(s){ return s.estado==='Completada'; }).length;
+  if (chartEstado) chartEstado.destroy();
+  chartEstado = new Chart(document.getElementById('chart-estado'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Pendiente','En camino','Completada'],
+      datasets: [{ data: [pendCount, camCount, compCount], backgroundColor: [C.warning+'CC', C.info+'CC', C.accent+'CC'], borderColor: [C.warning, C.info, C.accent], borderWidth: 1 }]
+    },
+    options: { plugins: { legend: { position:'bottom', labels:{ boxWidth:12, padding:12 } } }, cutout:'65%' }
+  });
+}
+
+function renderTabla(data) {
+  var statusClass = { 'Pendiente':'status-pendiente', 'En camino':'status-en-camino', 'Completada':'status-completada' };
+  var priClass = { 'Alta':'tag-alta', 'Media':'tag-media' };
+  var body = document.getElementById('tabla-body');
+
+  if (data.length === 0) {
+    body.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-3);padding:32px">Sin solicitudes en el período seleccionado</td></tr>';
+    return;
+  }
+
+  body.innerHTML = data.map(function(s) {
+    var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds*1000).toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+    return '<tr>' +
+      '<td class="tabla-id">#' + s.id.slice(-6).toUpperCase() + '</td>' +
+      '<td style="font-size:12px;color:var(--text-2)">' + fecha + '</td>' +
+      '<td class="tabla-nombre">' + (s.solicitante||'—') + '</td>' +
+      '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (s.contacto||'—') + '</td>' +
+      '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2)">' + (s.direccion||'—') + '</td>' +
+      '<td style="color:var(--text-2)">' + (s.municipio||'—') + '</td>' +
+      '<td><span class="tag ' + (s.tipo==='Empresarial'?'tag-empresarial':'tag-personal') + '">' + (s.tipo||'—') + '</span></td>' +
+      '<td><span class="tag ' + (priClass[s.prioridad]||'tag-media') + '">' + (s.prioridad||'—') + '</span></td>' +
+      '<td><span class="tag ' + (s.categoria==='Envío'?'tag-envio':'tag-recogida') + '">' + (s.categoria||'—') + '</span></td>' +
+      '<td><span class="status-pill ' + (statusClass[s.estado]||'status-pendiente') + '">' + (s.estado||'—') + '</span></td>' +
+      '<td class="tabla-id">' + (s.horaInicio||'—') + '</td>' +
+      '<td class="tabla-id">' + (s.horaFin||'—') + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function exportarExcel() {
+  var desde = document.getElementById('filtro-desde').value;
+  var hasta = document.getElementById('filtro-hasta').value;
+  var filtered = adminData;
+
+  if (desde) {
+    var desdeTs = new Date(desde + 'T00:00:00').getTime() / 1000;
+    filtered = filtered.filter(function(s){ return s.fechaCreacion && s.fechaCreacion.seconds >= desdeTs; });
+  }
+  if (hasta) {
+    var hastaTs = new Date(hasta + 'T23:59:59').getTime() / 1000;
+    filtered = filtered.filter(function(s){ return s.fechaCreacion && s.fechaCreacion.seconds <= hastaTs; });
+  }
+
+  filtered.sort(function(a,b){
+    var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
+    var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
+    return tb - ta;
+  });
+
+  var rows = filtered.map(function(s) {
+    var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds*1000).toLocaleDateString('es-CO') : '';
+    return {
+      'ID': '#' + s.id.slice(-6).toUpperCase(),
+      'Fecha': fecha,
+      'Solicitante': s.solicitante || '',
+      'Contacto / Empresa': s.contacto || '',
+      'Dirección': s.direccion || '',
+      'Municipio': s.municipio || '',
+      'Tipo': s.tipo || '',
+      'Prioridad': s.prioridad || '',
+      'Categoría': s.categoria || '',
+      'Observaciones': s.observaciones || '',
+      'Estado': s.estado || '',
+      'Hora inicio': s.horaInicio || '',
+      'Hora fin': s.horaFin || ''
+    };
+  });
+
+  if (rows.length === 0) { showToast('Sin datos para exportar', 'error'); return; }
+
+  var ws = XLSX.utils.json_to_sheet(rows);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Diligencias');
+
+  var nombreArchivo = 'diligencias_pixeludas';
+  if (desde) nombreArchivo += '_' + desde;
+  if (hasta) nombreArchivo += '_al_' + hasta;
+  nombreArchivo += '.xlsx';
+
+  XLSX.writeFile(wb, nombreArchivo);
+  showToast('✓ Excel descargado (' + rows.length + ' registros)', 'success');
+}
+
+// ─── GESTIÓN USUARIOS ───
+function renderUsuariosAdmin() {
+  var grid = document.getElementById('usuarios-grid');
+  if (!grid) return;
+  adminUsuarios = [...USUARIOS];
+  grid.innerHTML = adminUsuarios.map(function(u, i) {
+    return '<div class="usuario-item">' +
+      '<span class="usuario-nombre">' + u + '</span>' +
+      '<button class="btn-del-user" onclick="eliminarUsuario(' + i + ')" title="Eliminar">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+function eliminarUsuario(idx) {
+  if (!confirm('¿Eliminar a ' + adminUsuarios[idx] + ' de la lista?')) return;
+  adminUsuarios.splice(idx, 1);
+  USUARIOS = adminUsuarios.slice();
+  var grid = document.getElementById('usuarios-grid');
+  grid.innerHTML = adminUsuarios.map(function(u, i) {
+    return '<div class="usuario-item">' +
+      '<span class="usuario-nombre">' + u + '</span>' +
+      '<button class="btn-del-user" onclick="eliminarUsuario(' + i + ')" title="Eliminar">✕</button>' +
+    '</div>';
+  }).join('');
+  showToast('Usuario eliminado', 'success');
+}
+
+function agregarUsuario() {
+  var input = document.getElementById('nuevo-usuario');
+  var nombre = input.value.trim();
+  if (!nombre) { showToast('Escribe un nombre', 'error'); return; }
+  if (USUARIOS.indexOf(nombre) > -1) { showToast('Ya existe en la lista', 'error'); return; }
+  USUARIOS.push(nombre);
+  USUARIOS.sort();
+  adminUsuarios = USUARIOS.slice();
+  input.value = '';
+  var grid = document.getElementById('usuarios-grid');
+  grid.innerHTML = adminUsuarios.map(function(u, i) {
+    return '<div class="usuario-item">' +
+      '<span class="usuario-nombre">' + u + '</span>' +
+      '<button class="btn-del-user" onclick="eliminarUsuario(' + i + ')" title="Eliminar">✕</button>' +
+    '</div>';
+  }).join('');
+  showToast('✓ ' + nombre + ' agregado', 'success');
 }
 </script>
 </body>
