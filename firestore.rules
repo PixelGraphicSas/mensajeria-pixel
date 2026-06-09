@@ -1,0 +1,23 @@
+// firestore.rules
+// Pegar en Firebase Console → Firestore → Reglas
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Solicitudes: cualquiera puede leer y escribir (la seguridad es por PIN en el frontend)
+    match /solicitudes/{docId} {
+      allow read, write: if true;
+    }
+
+    // Usuarios: cualquiera puede leer, solo desde la app pueden escribir
+    match /usuarios/{docId} {
+      allow read, write: if true;
+    }
+
+    // Configuración
+    match /config/{docId} {
+      allow read, write: if true;
+    }
+  }
+}
