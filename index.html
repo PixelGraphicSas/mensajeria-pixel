@@ -809,6 +809,21 @@ const DIRECTORIO_CORREOS = {
 firebase.initializeApp(FIREBASE_CONFIG);
 var db = firebase.firestore();
 
+// ─── DEEP LINK ───
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var rol = params.get('rol');
+  if (rol === 'mensajero') {
+    // Pequeño delay para que el DOM esté listo
+    setTimeout(function() {
+      selectRole('mensajero');
+      // Scroll suave al PIN pad
+      var pinArea = document.getElementById('pin-area');
+      if (pinArea) pinArea.scrollIntoView({ behavior: 'smooth' });
+    }, 200);
+  }
+})();
+
 // ─── ESTADO GLOBAL ───
 var currentRole = null;
 var currentUser = null;
@@ -1320,7 +1335,7 @@ function notificarMensajero(datosSolicitud) {
     '📍 <b>Destino:</b> ' + (datosSolicitud.contacto || '') + nl +
     '🗺 <b>Dirección:</b> ' + (datosSolicitud.direccion || '') + ', ' + (datosSolicitud.municipio || '') + nl +
     (datosSolicitud.observaciones ? '⚠ <b>Obs:</b> ' + datosSolicitud.observaciones + nl : '') +
-    nl + '👉 <a href="https://pixelgraphicsas.github.io/mensajeria-pixel/">Abrir app — Módulo Mensajero</a>';
+    nl + '👉 <a href="https://pixelgraphicsas.github.io/mensajeria-pixel/?rol=mensajero">Abrir app — Módulo Mensajero</a>';
 
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
