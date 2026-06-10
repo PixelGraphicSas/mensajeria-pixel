@@ -1128,7 +1128,9 @@ function completarVuelta(id) {
   });
 }
 
-// ─── NOTIFICACIONES BREVO ───
+// ─── NOTIFICACIONES VÍA APPS SCRIPT ───
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyq92lplpKlLmGMQFZJCGm-sdFJ1-GNeWjxTsI8ykBHOvgkPMhmCaxItsxTHB-ZQqnLYA/exec";
+
 function enviarNotificacion(solicitante, evento, datosSolicitud) {
   var correo = DIRECTORIO_CORREOS[solicitante];
   if (!correo) { console.warn('Sin correo para:', solicitante); return; }
@@ -1139,58 +1141,54 @@ function enviarNotificacion(solicitante, evento, datosSolicitud) {
     'completada': '✅ Diligencia completada'
   };
 
-  var iconos = { 'recibida': '📋', 'en-camino': '🛵', 'completada': '✅' };
-  var colores = { 'recibida': '#E3B341', 'en-camino': '#58A6FF', 'completada': '#00E5A0' };
-  var mensajes = {
+  var iconos    = { 'recibida': '📋', 'en-camino': '🛵', 'completada': '✅' };
+  var colores   = { 'recibida': '#E3B341', 'en-camino': '#58A6FF', 'completada': '#00E5A0' };
+  var mensajes  = {
     'recibida':   'Tu solicitud fue recibida y está en la cola del mensajero.',
     'en-camino':  'El mensajero ya salió. Tu diligencia está en camino.',
     'completada': 'La diligencia fue completada exitosamente.'
   };
 
-  var hora = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-  var fecha = new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+  var hora  = new Date().toLocaleTimeString('es-CO',  { hour: '2-digit', minute: '2-digit' });
+  var fecha = new Date().toLocaleDateString('es-CO',  { weekday: 'long', day: 'numeric', month: 'long' });
 
-  var htmlBody = `
-  <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;background:#0D1117;border-radius:12px;overflow:hidden;border:1px solid #30363D">
-    <div style="background:${colores[evento]};padding:20px 28px;text-align:center">
-      <div style="font-size:36px;margin-bottom:6px">${iconos[evento]}</div>
-      <div style="font-size:18px;font-weight:700;color:#0D1117">${asuntos[evento].split('—')[0].trim()}</div>
-    </div>
-    <div style="padding:28px">
-      <p style="color:#E6EDF3;font-size:15px;margin:0 0 6px 0">Hola, <strong>${solicitante}</strong></p>
-      <p style="color:#8B949E;font-size:14px;margin:0 0 24px 0">${mensajes[evento]}</p>
-      <div style="background:#161B22;border:1px solid #30363D;border-radius:10px;padding:16px 20px;margin-bottom:20px">
-        <div style="display:grid;gap:10px">
-          <div><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Destino / Contacto</span><br><span style="color:#E6EDF3;font-weight:600">${datosSolicitud.contacto || '—'}</span></div>
-          <div><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Dirección</span><br><span style="color:#E6EDF3">${datosSolicitud.direccion || '—'} · ${datosSolicitud.municipio || ''}</span></div>
-          <div><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Categoría</span><br><span style="color:#E6EDF3">${datosSolicitud.categoria || '—'} · ${datosSolicitud.tipo || '—'}</span></div>
-          ${datosSolicitud.observaciones ? `<div><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Observaciones</span><br><span style="color:#E6EDF3">${datosSolicitud.observaciones}</span></div>` : ''}
-          ${datosSolicitud.horaInicio ? `<div><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Hora inicio</span><br><span style="color:#58A6FF;font-weight:600">▶ ${datosSolicitud.horaInicio}</span></div>` : ''}
-          ${datosSolicitud.horaFin ? `<div><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Hora finalización</span><br><span style="color:#00E5A0;font-weight:600">✓ ${datosSolicitud.horaFin}</span></div>` : ''}
-        </div>
-      </div>
-      <p style="color:#484F58;font-size:12px;text-align:center;margin:0">${fecha} · ${hora} · Diligencias Pixeludas</p>
-    </div>
-  </div>`;
+  var htmlBody =
+    '<div style="font-family:\'Segoe UI\',Arial,sans-serif;max-width:520px;margin:0 auto;background:#0D1117;border-radius:12px;overflow:hidden;border:1px solid #30363D">' +
+      '<div style="background:' + colores[evento] + ';padding:20px 28px;text-align:center">' +
+        '<div style="font-size:36px;margin-bottom:6px">' + iconos[evento] + '</div>' +
+        '<div style="font-size:18px;font-weight:700;color:#0D1117">' + asuntos[evento].split('—')[0].trim() + '</div>' +
+      '</div>' +
+      '<div style="padding:28px">' +
+        '<p style="color:#E6EDF3;font-size:15px;margin:0 0 6px 0">Hola, <strong>' + solicitante + '</strong></p>' +
+        '<p style="color:#8B949E;font-size:14px;margin:0 0 24px 0">' + mensajes[evento] + '</p>' +
+        '<div style="background:#161B22;border:1px solid #30363D;border-radius:10px;padding:16px 20px;margin-bottom:20px">' +
+          '<div style="margin-bottom:10px"><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Destino / Contacto</span><br><span style="color:#E6EDF3;font-weight:600">' + (datosSolicitud.contacto || '—') + '</span></div>' +
+          '<div style="margin-bottom:10px"><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Dirección</span><br><span style="color:#E6EDF3">' + (datosSolicitud.direccion || '—') + ' · ' + (datosSolicitud.municipio || '') + '</span></div>' +
+          '<div style="margin-bottom:10px"><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Categoría</span><br><span style="color:#E6EDF3">' + (datosSolicitud.categoria || '—') + ' · ' + (datosSolicitud.tipo || '—') + '</span></div>' +
+          (datosSolicitud.observaciones ? '<div style="margin-bottom:10px"><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Observaciones</span><br><span style="color:#E6EDF3">' + datosSolicitud.observaciones + '</span></div>' : '') +
+          (datosSolicitud.horaInicio ? '<div style="margin-bottom:10px"><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Hora inicio</span><br><span style="color:#58A6FF;font-weight:600">▶ ' + datosSolicitud.horaInicio + '</span></div>' : '') +
+          (datosSolicitud.horaFin    ? '<div><span style="color:#8B949E;font-size:12px;text-transform:uppercase;letter-spacing:0.6px">Hora finalización</span><br><span style="color:#00E5A0;font-weight:600">✓ ' + datosSolicitud.horaFin + '</span></div>' : '') +
+        '</div>' +
+        '<p style="color:#484F58;font-size:12px;text-align:center;margin:0">' + fecha + ' · ' + hora + ' · Mensajería Pixel Graphic</p>' +
+      '</div>' +
+    '</div>';
 
-  fetch('https://api.brevo.com/v3/smtp/email', {
+  fetch(APPS_SCRIPT_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': BREVO_API_KEY
-    },
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({
-      sender: { name: BREVO_SENDER_NAME, email: BREVO_SENDER_EMAIL },
-      to: [{ email: correo, name: solicitante }],
-      subject: asuntos[evento],
-      htmlContent: htmlBody
+      correo:      correo,
+      solicitante: solicitante,
+      asunto:      asuntos[evento],
+      html:        htmlBody
     })
   })
-  .then(function(res) {
-    if (res.ok) console.log('Notif enviada:', evento, '->', correo);
-    else res.json().then(function(e){ console.error('Brevo error:', e); });
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.ok) console.log('✓ Notif enviada:', evento, '->', correo);
+    else console.error('Brevo error:', data);
   })
-  .catch(function(e){ console.error('Notif fallida:', e); });
+  .catch(function(e) { console.error('Notif fallida:', e); });
 }
 
 // ─── TOAST ───
