@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diligencias Pixeludas</title>
 <link rel="icon" type="image/png" href="Logo.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -425,6 +426,43 @@
   .add-user-row .form-input { flex: 1; }
   .btn-add-user { padding: 10px 16px; border-radius: var(--radius); background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
   .btn-add-user:hover { border-color: var(--accent); color: var(--accent); }
+  /* Modal mapa picker */
+  .map-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 300; backdrop-filter: blur(4px); padding: 16px;
+  }
+  .map-modal-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); width: 100%; max-width: 680px;
+    overflow: hidden; display: flex; flex-direction: column;
+    max-height: 90vh;
+  }
+  .map-modal-header {
+    padding: 16px 20px; display: flex; align-items: center;
+    justify-content: space-between; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .map-modal-title { font-size: 15px; font-weight: 600; }
+  .map-modal-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+  .map-search-row {
+    padding: 12px 16px; display: flex; gap: 8px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .map-search-row .form-input { flex: 1; }
+  #map-container { flex: 1; min-height: 320px; }
+  .map-selected-bar {
+    padding: 12px 16px; background: var(--surface2);
+    border-top: 1px solid var(--border); flex-shrink: 0;
+    display: none;
+  }
+  .map-selected-addr { font-size: 13px; color: var(--accent); font-weight: 500; }
+  .map-selected-coords { font-size: 11px; color: var(--text-3); font-family: JetBrains Mono, monospace; margin-top: 2px; }
+  .map-modal-footer {
+    padding: 12px 16px; display: flex; gap: 10px;
+    border-top: 1px solid var(--border); flex-shrink: 0;
+  }
+
   /* Modal edición usuario */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.7);
@@ -588,7 +626,7 @@
             <label class="form-label">Dirección de envío o recogida <span>*</span></label>
             <div style="display:flex;gap:8px;align-items:flex-start">
               <input class="form-input" id="f-direccion" type="text" placeholder="Ej: Calle 49 # 65-23 — o texto libre: Casa de Ana Gómez" style="flex:1">
-              <button type="button" onclick="verificarDireccion()" style="padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:#58A6FF;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Space Grotesk,sans-serif;transition:all 0.18s ease" onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='var(--border)'">🔍 Ver en Maps</button>
+              <button type="button" onclick="abrirMapaPicker()" style="padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:#58A6FF;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Space Grotesk,sans-serif;transition:all 0.18s ease" onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='var(--border)'">📍 Buscar en mapa</button>
             </div>
           </div>
 
@@ -734,6 +772,32 @@
   </div>
 </div>
 
+<!-- MODAL MAPA PICKER -->
+<div class="map-modal-overlay" id="modal-mapa" style="display:none">
+  <div class="map-modal-box">
+    <div class="map-modal-header">
+      <div>
+        <div class="map-modal-title">📍 Seleccionar ubicación</div>
+        <div class="map-modal-sub">Haz clic en el mapa o busca una dirección — también puedes escribir texto libre</div>
+      </div>
+      <button onclick="cerrarMapaPicker()" style="background:none;border:none;color:var(--text-2);font-size:20px;cursor:pointer;padding:4px 8px">✕</button>
+    </div>
+    <div class="map-search-row">
+      <input class="form-input" id="map-search-input" type="text" placeholder="Buscar dirección o lugar...">
+      <button onclick="buscarEnMapa()" style="padding:10px 16px;background:var(--accent);color:#0D1117;border:none;border-radius:var(--radius);font-family:Space Grotesk,sans-serif;font-size:13px;font-weight:700;cursor:pointer">Buscar</button>
+    </div>
+    <div id="map-container"></div>
+    <div class="map-selected-bar" id="map-selected-bar">
+      <div class="map-selected-addr" id="map-selected-addr">Cargando dirección...</div>
+      <div class="map-selected-coords" id="map-selected-coords"></div>
+    </div>
+    <div class="map-modal-footer">
+      <button onclick="cerrarMapaPicker()" style="flex:1;padding:11px;border-radius:var(--radius);background:var(--surface2);color:var(--text-2);border:1px solid var(--border);font-family:Space Grotesk,sans-serif;font-size:14px;cursor:pointer">Cancelar</button>
+      <button onclick="confirmarUbicacion()" id="btn-confirmar-ubicacion" disabled style="flex:1;padding:11px;border-radius:var(--radius);background:var(--accent);color:#0D1117;border:none;font-family:Space Grotesk,sans-serif;font-size:14px;font-weight:700;cursor:pointer;opacity:0.4">Usar esta ubicación</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EDITAR USUARIO -->
 <div class="modal-overlay" id="modal-usuario" style="display:none">
   <div class="modal-box">
@@ -761,6 +825,8 @@
   <div class="loading-box"><div class="spinner"></div>Cargando...</div>
 </div>
 
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -1069,6 +1135,145 @@ function enviarSolicitud() {
     btn.textContent = 'Enviar solicitud';
   });
 }
+
+// ─── MAPA PICKER ───
+var mapaInstance = null;
+var mapaMarker = null;
+var mapaUbicacionSeleccionada = null;
+
+function abrirMapaPicker() {
+  document.getElementById('modal-mapa').style.display = 'flex';
+  // Prefill búsqueda con lo que ya hay escrito
+  var dirActual = document.getElementById('f-direccion').value.trim();
+  var muniActual = document.getElementById('f-municipio').value.trim();
+  if (dirActual) {
+    document.getElementById('map-search-input').value = dirActual + (muniActual ? ', ' + muniActual : '');
+  }
+
+  setTimeout(function() {
+    if (!mapaInstance) {
+      // Centrar en Medellín por defecto
+      mapaInstance = L.map('map-container').setView([6.2442, -75.5812], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19
+      }).addTo(mapaInstance);
+
+      mapaInstance.on('click', function(e) {
+        colocarPin(e.latlng.lat, e.latlng.lng);
+      });
+    } else {
+      mapaInstance.invalidateSize();
+    }
+
+    // Si hay texto en el campo, buscar automáticamente
+    var query = document.getElementById('map-search-input').value.trim();
+    if (query) buscarEnMapa();
+  }, 150);
+}
+
+function cerrarMapaPicker() {
+  document.getElementById('modal-mapa').style.display = 'none';
+}
+
+function buscarEnMapa() {
+  var query = document.getElementById('map-search-input').value.trim();
+  if (!query) return;
+
+  // Añadir Colombia como contexto si no lo tiene
+  var queryFull = query.toLowerCase().includes('colombia') ? query : query + ', Colombia';
+
+  fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(queryFull) + '&limit=1&addressdetails=1', {
+    headers: { 'Accept-Language': 'es' }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data && data.length > 0) {
+      var lat = parseFloat(data[0].lat);
+      var lon = parseFloat(data[0].lon);
+      mapaInstance.setView([lat, lon], 16);
+      colocarPin(lat, lon);
+    } else {
+      showToast('No se encontró esa dirección — intenta con más detalle', 'error');
+    }
+  })
+  .catch(function() { showToast('Error al buscar', 'error'); });
+}
+
+function colocarPin(lat, lng) {
+  if (mapaMarker) mapaInstance.removeLayer(mapaMarker);
+
+  mapaMarker = L.marker([lat, lng], {
+    icon: L.divIcon({
+      html: '<div style="background:#00E5A0;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>',
+      iconSize: [16, 16], iconAnchor: [8, 8]
+    })
+  }).addTo(mapaInstance);
+
+  // Geocodificación inversa — obtener dirección del punto
+  var bar = document.getElementById('map-selected-bar');
+  var addrEl = document.getElementById('map-selected-addr');
+  var coordsEl = document.getElementById('map-selected-coords');
+  bar.style.display = 'block';
+  addrEl.textContent = 'Obteniendo dirección...';
+  coordsEl.textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
+
+  fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1', {
+    headers: { 'Accept-Language': 'es' }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var addr = data.display_name || 'Ubicación seleccionada';
+    // Simplificar la dirección
+    var a = data.address || {};
+    var partes = [];
+    if (a.road) partes.push(a.road);
+    if (a.house_number) partes.push(a.house_number);
+    if (a.suburb || a.neighbourhood) partes.push(a.suburb || a.neighbourhood);
+    if (a.city || a.town || a.municipality) partes.push(a.city || a.town || a.municipality);
+    var addrCorta = partes.length > 0 ? partes.join(', ') : addr.split(',').slice(0,3).join(',');
+
+    addrEl.textContent = addrCorta;
+    coordsEl.textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
+
+    mapaUbicacionSeleccionada = {
+      direccion: addrCorta,
+      municipio: a.city || a.town || a.municipality || '',
+      lat: lat, lng: lng
+    };
+
+    var btnConfirmar = document.getElementById('btn-confirmar-ubicacion');
+    btnConfirmar.disabled = false;
+    btnConfirmar.style.opacity = '1';
+  })
+  .catch(function() {
+    addrEl.textContent = 'Ubicación seleccionada (lat: ' + lat.toFixed(4) + ', lng: ' + lng.toFixed(4) + ')';
+    mapaUbicacionSeleccionada = { direccion: 'Lat: ' + lat.toFixed(4) + ' Lng: ' + lng.toFixed(4), municipio: '', lat: lat, lng: lng };
+    var btnConfirmar = document.getElementById('btn-confirmar-ubicacion');
+    btnConfirmar.disabled = false;
+    btnConfirmar.style.opacity = '1';
+  });
+}
+
+function confirmarUbicacion() {
+  if (!mapaUbicacionSeleccionada) return;
+  document.getElementById('f-direccion').value = mapaUbicacionSeleccionada.direccion;
+  if (mapaUbicacionSeleccionada.municipio && !document.getElementById('f-municipio').value.trim()) {
+    document.getElementById('f-municipio').value = mapaUbicacionSeleccionada.municipio;
+  }
+  cerrarMapaPicker();
+  showToast('✓ Ubicación seleccionada', 'success');
+}
+
+// Buscar con Enter en el input del mapa
+document.addEventListener('DOMContentLoaded', function() {
+  var mapInput = document.getElementById('map-search-input');
+  if (mapInput) {
+    mapInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') buscarEnMapa();
+    });
+  }
+});
 
 function verificarDireccion() {
   var dir = document.getElementById('f-direccion').value.trim();
