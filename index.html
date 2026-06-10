@@ -51,7 +51,7 @@
     display: flex; align-items: center; gap: 12px;
     padding: 0 24px; height: 56px;
   }
-  .topbar img { height: 32px; mix-blend-mode: lighten; }
+  .topbar img { height: 58px; mix-blend-mode: lighten; }
   .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
   .topbar-sep { width: 1px; height: 20px; background: var(--border); }
   .topbar-role {
@@ -75,7 +75,7 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 24px;
   }
-  .login-logo { height: 48px; mix-blend-mode: lighten; margin-bottom: 8px; }
+  .login-logo { height: 86px; mix-blend-mode: lighten; margin-bottom: 12px; }
   .login-title {
     font-size: 22px; font-weight: 700; color: var(--text);
     letter-spacing: -0.5px; margin-bottom: 4px; text-align: center;
@@ -1093,6 +1093,7 @@ function renderMisSolicitudes(lista) {
   cont.innerHTML = lista.map(function(s) {
     var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds * 1000) : new Date();
     var fechaStr = fecha.toLocaleDateString('es-CO', { day:'2-digit', month:'short' }) + ' ' + fecha.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+    var consecHtml = s.consecutivo ? '<span style="color:#00E5A0;font-size:15px;font-weight:700;font-family:JetBrains Mono,monospace">#' + s.consecutivo + '</span>' : '<span style="color:#484F58;font-size:11px;font-family:JetBrains Mono,monospace">#' + s.id.slice(-6).toUpperCase() + '</span>';
     var statusClass = { 'Pendiente': 'status-pendiente', 'En camino': 'status-en-camino', 'Completada': 'status-completada' }[s.estado] || 'status-pendiente';
     var priTag = s.prioridad === 'Alta' ? '<span class="tag tag-alta">Alta</span>' : '<span class="tag tag-media">Media</span>';
     var catTag = s.categoria === 'Envío' ? '<span class="tag tag-envio">Envío</span>' : '<span class="tag tag-recogida">Recogida</span>';
@@ -1103,7 +1104,7 @@ function renderMisSolicitudes(lista) {
 
     return '<div class="solicitud-card">' +
       '<div class="sol-top">' +
-        '<div><div class="sol-id">' + (s.consecutivo || ('#' + s.id.slice(-6).toUpperCase())) + '</div><div class="sol-fecha">' + fechaStr + '</div></div>' +
+        '<div>' + consecHtml + '<div class="sol-fecha">' + fechaStr + '</div></div>' +
         '<span class="status-pill ' + statusClass + '">' + s.estado + '</span>' +
       '</div>' +
       '<div class="sol-dest">' + s.contacto + '</div>' +
@@ -1187,7 +1188,7 @@ function renderMensajero(lista) {
     return '<div class="msg-card">' +
       '<div class="msg-card-priority-bar ' + barClass + '"></div>' +
       '<div class="msg-card-body">' +
-        '<div class="msg-card-top"><span class="msg-solicitante">👤 ' + s.solicitante + '</span><span class="msg-card-id">' + (s.consecutivo || ('#' + s.id.slice(-6).toUpperCase())) + '</span></div>' +
+        '<div class="msg-card-top"><span class="msg-solicitante">👤 ' + s.solicitante + '</span><span style="color:#00E5A0;font-size:14px;font-weight:700;font-family:JetBrains Mono,monospace">' + (s.consecutivo ? '#'+s.consecutivo : '#'+s.id.slice(-6).toUpperCase()) + '</span></div>' +
         '<div class="msg-dest">' + s.contacto + '</div>' +
         '<div class="msg-dir">📍 ' + s.direccion + '</div>' +
         '<div class="msg-muni">' + s.municipio + '</div>' +
@@ -1508,7 +1509,7 @@ function renderTabla(data) {
   body.innerHTML = data.map(function(s) {
     var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds*1000).toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'}) : '—';
     return '<tr>' +
-      '<td class="tabla-id">' + (s.consecutivo || ('#' + s.id.slice(-6).toUpperCase())) + '</td>' +
+      '<td style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:#00E5A0">' + (s.consecutivo ? '#'+s.consecutivo : '#'+s.id.slice(-6).toUpperCase()) + '</td>' +
       '<td style="font-size:12px;color:var(--text-2)">' + fecha + '</td>' +
       '<td class="tabla-nombre">' + (s.solicitante||'—') + '</td>' +
       '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (s.contacto||'—') + '</td>' +
