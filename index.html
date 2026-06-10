@@ -1311,25 +1311,16 @@ function notificarMensajero(datosSolicitud) {
   var prioEmoji = datosSolicitud.prioridad === 'Alta' ? '🔴' : '🟡';
   var catEmoji = datosSolicitud.categoria === 'Envío' ? '📦' : '🏠';
 
+  var nl = '\n';
   var mensaje =
-    '🛵 <b>Nueva diligencia ' + consec + '</b>
-
-' +
-    prioEmoji + ' <b>Prioridad ' + (datosSolicitud.prioridad || '') + '</b>
-' +
-    catEmoji + ' ' + (datosSolicitud.categoria || '') + ' · ' + (datosSolicitud.tipo || '') + '
-
-' +
-    '👤 <b>Solicitante:</b> ' + (datosSolicitud.solicitante || '') + '
-' +
-    '📍 <b>Destino:</b> ' + (datosSolicitud.contacto || '') + '
-' +
-    '🗺 <b>Dirección:</b> ' + (datosSolicitud.direccion || '') + ', ' + (datosSolicitud.municipio || '') + '
-' +
-    (datosSolicitud.observaciones ? '⚠ <b>Obs:</b> ' + datosSolicitud.observaciones + '
-' : '') +
-    '
-<i>Entra a la app para gestionar la vuelta.</i>';
+    '🛵 <b>Nueva diligencia ' + consec + '</b>' + nl + nl +
+    prioEmoji + ' <b>Prioridad ' + (datosSolicitud.prioridad || '') + '</b>' + nl +
+    catEmoji + ' ' + (datosSolicitud.categoria || '') + ' · ' + (datosSolicitud.tipo || '') + nl + nl +
+    '👤 <b>Solicitante:</b> ' + (datosSolicitud.solicitante || '') + nl +
+    '📍 <b>Destino:</b> ' + (datosSolicitud.contacto || '') + nl +
+    '🗺 <b>Dirección:</b> ' + (datosSolicitud.direccion || '') + ', ' + (datosSolicitud.municipio || '') + nl +
+    (datosSolicitud.observaciones ? '⚠ <b>Obs:</b> ' + datosSolicitud.observaciones + nl : '') +
+    nl + '<i>Entra a la app para gestionar la vuelta.</i>';
 
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
