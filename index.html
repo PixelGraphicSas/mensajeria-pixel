@@ -706,7 +706,7 @@
                 <tr>
                   <th>ID</th><th>Fecha</th><th>Solicitante</th><th>Contacto / Empresa</th>
                   <th>Dirección</th><th>Municipio</th><th>Tipo</th><th>Prioridad</th>
-                  <th>Categoría</th><th>Estado</th><th>Inicio</th><th>Fin</th>
+                  <th>Categoría</th><th>Estado</th><th>Inicio</th><th>Fin</th><th>Mapa</th>
                 </tr>
               </thead>
               <tbody id="tabla-body"></tbody>
@@ -1126,7 +1126,9 @@ function renderMisSolicitudes(lista) {
       '<div class="sol-dest">' + s.contacto + '</div>' +
       '<div class="sol-dir">📍 ' + s.direccion + ' · ' + s.municipio + '</div>' +
       (s.observaciones ? '<div class="sol-obs">💬 ' + s.observaciones + '</div>' : '') +
-      '<div class="sol-tags">' + priTag + catTag + tipoTag + horasHtml + '</div>' +
+      '<div class="sol-tags">' + priTag + catTag + tipoTag + horasHtml +
+        '<a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#58A6FF;background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.25);padding:3px 10px;border-radius:20px;text-decoration:none;font-family:JetBrains Mono,monospace">📍 Ver mapa</a>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
@@ -1209,7 +1211,9 @@ function renderMensajero(lista) {
         '<div class="msg-dir">📍 ' + s.direccion + '</div>' +
         '<div class="msg-muni">' + s.municipio + '</div>' +
         (s.observaciones ? '<div class="msg-obs-box">⚠ ' + s.observaciones + '</div>' : '') +
-        '<div class="msg-tags">' + priTag + catTag + '</div>' +
+        '<div class="msg-tags">' + priTag + catTag +
+          '<a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#58A6FF;background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.25);padding:3px 10px;border-radius:20px;text-decoration:none;font-family:JetBrains Mono,monospace">📍 Ver en Maps</a>' +
+        '</div>' +
       '</div>' +
       actionsHtml +
     '</div>';
@@ -1568,6 +1572,7 @@ function renderTabla(data) {
       '<td><span class="status-pill ' + (statusClass[s.estado]||'status-pendiente') + '">' + (s.estado||'—') + '</span></td>' +
       '<td class="tabla-id">' + (s.horaInicio||'—') + '</td>' +
       '<td class="tabla-id">' + (s.horaFin||'—') + '</td>' +
+      '<td><a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="color:#58A6FF;font-size:13px;text-decoration:none">📍</a></td>' +
     '</tr>';
   }).join('');
 }
