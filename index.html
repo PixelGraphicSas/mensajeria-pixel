@@ -586,7 +586,10 @@
 
           <div class="form-group full">
             <label class="form-label">Dirección de envío o recogida <span>*</span></label>
-            <input class="form-input" id="f-direccion" type="text" placeholder="Ej: Calle 49 # 65-23">
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <input class="form-input" id="f-direccion" type="text" placeholder="Ej: Calle 49 # 65-23 — o texto libre: Casa de Ana Gómez" style="flex:1">
+              <button type="button" onclick="verificarDireccion()" style="padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:#58A6FF;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:Space Grotesk,sans-serif;transition:all 0.18s ease" onmouseover="this.style.borderColor='#58A6FF'" onmouseout="this.style.borderColor='var(--border)'">🔍 Ver en Maps</button>
+            </div>
           </div>
 
           <div class="form-group full">
@@ -1067,6 +1070,14 @@ function enviarSolicitud() {
   });
 }
 
+function verificarDireccion() {
+  var dir = document.getElementById('f-direccion').value.trim();
+  var muni = document.getElementById('f-municipio').value.trim();
+  if (!dir) { showToast('Escribe una dirección primero', 'error'); return; }
+  var query = dir + (muni ? ' ' + muni : '');
+  window.open('https://maps.google.com/?q=' + encodeURIComponent(query), '_blank');
+}
+
 function resetForm() {
   document.getElementById('f-tipo').value = '';
   document.getElementById('f-municipio').value = '';
@@ -1124,11 +1135,11 @@ function renderMisSolicitudes(lista) {
         '<span class="status-pill ' + statusClass + '">' + s.estado + '</span>' +
       '</div>' +
       '<div class="sol-dest">' + s.contacto + '</div>' +
-      '<div class="sol-dir">📍 ' + s.direccion + ' · ' + s.municipio + '</div>' +
-      (s.observaciones ? '<div class="sol-obs">💬 ' + s.observaciones + '</div>' : '') +
-      '<div class="sol-tags">' + priTag + catTag + tipoTag + horasHtml +
-        '<a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#58A6FF;background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.25);padding:3px 10px;border-radius:20px;text-decoration:none;font-family:JetBrains Mono,monospace">📍 Ver mapa</a>' +
+      '<div class="sol-dir">📍 ' + s.direccion + ' · ' + s.municipio +
+        ' <a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="color:#58A6FF;font-size:11px;font-weight:600;text-decoration:none;margin-left:6px;font-family:JetBrains Mono,monospace">Ver en Maps ↗</a>' +
       '</div>' +
+      (s.observaciones ? '<div class="sol-obs">💬 ' + s.observaciones + '</div>' : '') +
+      '<div class="sol-tags">' + priTag + catTag + tipoTag + horasHtml + '</div>' +
     '</div>';
   }).join('');
 }
@@ -1208,12 +1219,12 @@ function renderMensajero(lista) {
       '<div class="msg-card-body">' +
         '<div class="msg-card-top"><span class="msg-solicitante">👤 ' + s.solicitante + '</span><span style="color:#00E5A0;font-size:14px;font-weight:700;font-family:JetBrains Mono,monospace">' + (s.consecutivo ? '#'+s.consecutivo : '#'+s.id.slice(-6).toUpperCase()) + '</span></div>' +
         '<div class="msg-dest">' + s.contacto + '</div>' +
-        '<div class="msg-dir">📍 ' + s.direccion + '</div>' +
+        '<div class="msg-dir">📍 ' + s.direccion +
+          ' <a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="color:#58A6FF;font-size:11px;font-weight:600;text-decoration:none;margin-left:6px;font-family:JetBrains Mono,monospace">Ver en Maps ↗</a>' +
+        '</div>' +
         '<div class="msg-muni">' + s.municipio + '</div>' +
         (s.observaciones ? '<div class="msg-obs-box">⚠ ' + s.observaciones + '</div>' : '') +
-        '<div class="msg-tags">' + priTag + catTag +
-          '<a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#58A6FF;background:rgba(88,166,255,0.1);border:1px solid rgba(88,166,255,0.25);padding:3px 10px;border-radius:20px;text-decoration:none;font-family:JetBrains Mono,monospace">📍 Ver en Maps</a>' +
-        '</div>' +
+        '<div class="msg-tags">' + priTag + catTag + '</div>' +
       '</div>' +
       actionsHtml +
     '</div>';
