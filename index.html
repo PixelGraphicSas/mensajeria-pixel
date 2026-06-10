@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diligencias Pixeludas</title>
+<link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -424,6 +425,34 @@
   .add-user-row .form-input { flex: 1; }
   .btn-add-user { padding: 10px 16px; border-radius: var(--radius); background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
   .btn-add-user:hover { border-color: var(--accent); color: var(--accent); }
+  /* Modal edición usuario */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; backdrop-filter: blur(4px);
+  }
+  .modal-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 28px; width: 100%;
+    max-width: 420px; margin: 16px;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-modal-save {
+    flex: 1; padding: 11px; border-radius: var(--radius);
+    background: var(--accent); color: #0D1117; border: none;
+    font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: opacity var(--transition);
+  }
+  .btn-modal-save:hover { opacity: 0.85; }
+  .btn-modal-cancel {
+    flex: 1; padding: 11px; border-radius: var(--radius);
+    background: var(--surface2); color: var(--text-2);
+    border: 1px solid var(--border);
+    font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+    cursor: pointer; transition: all var(--transition);
+  }
+  .btn-modal-cancel:hover { color: var(--text); border-color: var(--text-3); }
   @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } .charts-grid { grid-template-columns: 1fr; } .usuarios-grid { grid-template-columns: 1fr; } }
   @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .login-roles { grid-template-columns: 1fr; } .main-content { padding: 20px 16px; } .admin-content { padding: 20px 16px; } .kpi-grid { grid-template-columns: repeat(2,1fr); } }
 </style>
@@ -702,6 +731,25 @@
   </div>
 </div>
 
+<!-- MODAL EDITAR USUARIO -->
+<div class="modal-overlay" id="modal-usuario" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">Editar solicitante</div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Nombre</label>
+      <input class="form-input" id="modal-nombre" type="text" placeholder="Nombre completo">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Correo electrónico</label>
+      <input class="form-input" id="modal-correo" type="email" placeholder="correo@pixel-g.com">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="cerrarModalUsuario()">Cancelar</button>
+      <button class="btn-modal-save" onclick="guardarUsuario()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -915,7 +963,16 @@ function enviarSolicitud() {
   btn.disabled = true;
   btn.textContent = 'Enviando...';
 
+  // Generar consecutivo PX-YYYYMMDD-XXXX
+  var ahora = new Date();
+  var yyyy = ahora.getFullYear();
+  var mm = String(ahora.getMonth()+1).padStart(2,'0');
+  var dd = String(ahora.getDate()).padStart(2,'0');
+  var rand = String(Math.floor(Math.random()*9000)+1000);
+  var consecutivo = 'PX-' + yyyy + mm + dd + '-' + rand;
+
   var solicitud = {
+    consecutivo: consecutivo,
     solicitante: currentUser,
     tipo: tipo,
     prioridad: selectedPriority,
@@ -935,7 +992,7 @@ function enviarSolicitud() {
 
   db.collection('solicitudes').add(solicitud)
     .then(function(docRef) {
-      showToast('✓ Solicitud enviada', 'success');
+      showToast('✓ Solicitud ' + consecutivo + ' enviada', 'success');
       enviarNotificacion(currentUser, 'recibida', solicitud);
       resetForm();
     })
@@ -1001,7 +1058,7 @@ function renderMisSolicitudes(lista) {
 
     return '<div class="solicitud-card">' +
       '<div class="sol-top">' +
-        '<div><div class="sol-id">#' + s.id.slice(-6).toUpperCase() + '</div><div class="sol-fecha">' + fechaStr + '</div></div>' +
+        '<div><div class="sol-id">' + (s.consecutivo || ('#' + s.id.slice(-6).toUpperCase())) + '</div><div class="sol-fecha">' + fechaStr + '</div></div>' +
         '<span class="status-pill ' + statusClass + '">' + s.estado + '</span>' +
       '</div>' +
       '<div class="sol-dest">' + s.contacto + '</div>' +
@@ -1080,7 +1137,7 @@ function renderMensajero(lista) {
     return '<div class="msg-card">' +
       '<div class="msg-card-priority-bar ' + barClass + '"></div>' +
       '<div class="msg-card-body">' +
-        '<div class="msg-card-top"><span class="msg-solicitante">👤 ' + s.solicitante + '</span><span class="msg-card-id">#' + s.id.slice(-6).toUpperCase() + '</span></div>' +
+        '<div class="msg-card-top"><span class="msg-solicitante">👤 ' + s.solicitante + '</span><span class="msg-card-id">' + (s.consecutivo || ('#' + s.id.slice(-6).toUpperCase())) + '</span></div>' +
         '<div class="msg-dest">' + s.contacto + '</div>' +
         '<div class="msg-dir">📍 ' + s.direccion + '</div>' +
         '<div class="msg-muni">' + s.municipio + '</div>' +
@@ -1162,10 +1219,11 @@ function enviarNotificacion(solicitante, evento, datosSolicitud) {
   var correo = DIRECTORIO_CORREOS[solicitante];
   if (!correo) { console.warn('Sin correo para:', solicitante); return; }
 
+  var ref = datosSolicitud.consecutivo ? '[' + datosSolicitud.consecutivo + '] ' : '';
   var asuntos = {
-    'recibida':   '📋 Solicitud recibida — Diligencias Pixeludas',
-    'en-camino':  '🛵 Tu mensajería está en camino',
-    'completada': '✅ Diligencia completada'
+    'recibida':   '📋 ' + ref + 'Solicitud recibida — Diligencias Pixeludas',
+    'en-camino':  '🛵 ' + ref + 'Tu mensajería está en camino',
+    'completada': '✅ ' + ref + 'Diligencia completada'
   };
 
   var iconos    = { 'recibida': '📋', 'en-camino': '🛵', 'completada': '✅' };
@@ -1181,6 +1239,9 @@ function enviarNotificacion(solicitante, evento, datosSolicitud) {
 
   var htmlBody =
     '<div style="font-family:\'Segoe UI\',Arial,sans-serif;max-width:520px;margin:0 auto;background:#0D1117;border-radius:12px;overflow:hidden;border:1px solid #30363D">' +
+      '<div style="background:#161B22;padding:16px 28px;text-align:center;border-bottom:1px solid #30363D">' +
+        '<img src="https://pixelgraphicsas.github.io/mensajeria-pixel/logo.png" style="height:36px;mix-blend-mode:lighten" alt="Pixel Graphic">' +
+      '</div>' +
       '<div style="background:' + colores[evento] + ';padding:20px 28px;text-align:center">' +
         '<div style="font-size:36px;margin-bottom:6px">' + iconos[evento] + '</div>' +
         '<div style="font-size:18px;font-weight:700;color:#0D1117">' + asuntos[evento].split('—')[0].trim() + '</div>' +
@@ -1407,7 +1468,7 @@ function renderTabla(data) {
   body.innerHTML = data.map(function(s) {
     var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds*1000).toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'}) : '—';
     return '<tr>' +
-      '<td class="tabla-id">#' + s.id.slice(-6).toUpperCase() + '</td>' +
+      '<td class="tabla-id">' + (s.consecutivo || ('#' + s.id.slice(-6).toUpperCase())) + '</td>' +
       '<td style="font-size:12px;color:var(--text-2)">' + fecha + '</td>' +
       '<td class="tabla-nombre">' + (s.solicitante||'—') + '</td>' +
       '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (s.contacto||'—') + '</td>' +
@@ -1478,29 +1539,79 @@ function exportarExcel() {
 }
 
 // ─── GESTIÓN USUARIOS ───
+var modalEditIdx = -1;
+
 function renderUsuariosAdmin() {
   var grid = document.getElementById('usuarios-grid');
   if (!grid) return;
-  adminUsuarios = [...USUARIOS];
+  adminUsuarios = USUARIOS.map(function(u) {
+    return { nombre: u, correo: DIRECTORIO_CORREOS[u] || '' };
+  });
+  _dibujarGrilla();
+}
+
+function _dibujarGrilla() {
+  var grid = document.getElementById('usuarios-grid');
+  if (!grid) return;
   grid.innerHTML = adminUsuarios.map(function(u, i) {
     return '<div class="usuario-item">' +
-      '<span class="usuario-nombre">' + u + '</span>' +
-      '<button class="btn-del-user" onclick="eliminarUsuario(' + i + ')" title="Eliminar">✕</button>' +
+      '<div>' +
+        '<div class="usuario-nombre">' + u.nombre + '</div>' +
+        '<div style="font-size:11px;color:var(--text-3);font-family:'JetBrains Mono',monospace;margin-top:2px">' + (u.correo || 'sin correo') + '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px">' +
+        '<button class="btn-add-user" style="padding:5px 10px;font-size:12px" onclick="abrirModalUsuario(' + i + ')" title="Editar">✏</button>' +
+        '<button class="btn-del-user" onclick="eliminarUsuario(' + i + ')" title="Eliminar">✕</button>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
 
+function abrirModalUsuario(idx) {
+  modalEditIdx = idx;
+  document.getElementById('modal-nombre').value = adminUsuarios[idx].nombre;
+  document.getElementById('modal-correo').value = adminUsuarios[idx].correo || '';
+  document.getElementById('modal-usuario').style.display = 'flex';
+}
+
+function cerrarModalUsuario() {
+  document.getElementById('modal-usuario').style.display = 'none';
+  modalEditIdx = -1;
+}
+
+function guardarUsuario() {
+  var nuevoNombre = document.getElementById('modal-nombre').value.trim();
+  var nuevoCorreo = document.getElementById('modal-correo').value.trim();
+  if (!nuevoNombre) { showToast('El nombre no puede estar vacío', 'error'); return; }
+  if (!nuevoCorreo) { showToast('El correo no puede estar vacío', 'error'); return; }
+
+  var nombreViejo = adminUsuarios[modalEditIdx].nombre;
+
+  // Actualizar USUARIOS y DIRECTORIO_CORREOS en memoria
+  var idxUsuarios = USUARIOS.indexOf(nombreViejo);
+  if (idxUsuarios > -1) USUARIOS.splice(idxUsuarios, 1);
+  delete DIRECTORIO_CORREOS[nombreViejo];
+
+  USUARIOS.push(nuevoNombre);
+  USUARIOS.sort();
+  DIRECTORIO_CORREOS[nuevoNombre] = nuevoCorreo;
+
+  adminUsuarios[modalEditIdx] = { nombre: nuevoNombre, correo: nuevoCorreo };
+  adminUsuarios.sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
+
+  cerrarModalUsuario();
+  _dibujarGrilla();
+  showToast('✓ ' + nuevoNombre + ' actualizado', 'success');
+}
+
 function eliminarUsuario(idx) {
-  if (!confirm('¿Eliminar a ' + adminUsuarios[idx] + ' de la lista?')) return;
+  if (!confirm('¿Eliminar a ' + adminUsuarios[idx].nombre + ' de la lista?')) return;
+  var nombre = adminUsuarios[idx].nombre;
+  var idxUsuarios = USUARIOS.indexOf(nombre);
+  if (idxUsuarios > -1) USUARIOS.splice(idxUsuarios, 1);
+  delete DIRECTORIO_CORREOS[nombre];
   adminUsuarios.splice(idx, 1);
-  USUARIOS = adminUsuarios.slice();
-  var grid = document.getElementById('usuarios-grid');
-  grid.innerHTML = adminUsuarios.map(function(u, i) {
-    return '<div class="usuario-item">' +
-      '<span class="usuario-nombre">' + u + '</span>' +
-      '<button class="btn-del-user" onclick="eliminarUsuario(' + i + ')" title="Eliminar">✕</button>' +
-    '</div>';
-  }).join('');
+  _dibujarGrilla();
   showToast('Usuario eliminado', 'success');
 }
 
@@ -1511,16 +1622,12 @@ function agregarUsuario() {
   if (USUARIOS.indexOf(nombre) > -1) { showToast('Ya existe en la lista', 'error'); return; }
   USUARIOS.push(nombre);
   USUARIOS.sort();
-  adminUsuarios = USUARIOS.slice();
+  DIRECTORIO_CORREOS[nombre] = '';
+  adminUsuarios = USUARIOS.map(function(u){ return { nombre: u, correo: DIRECTORIO_CORREOS[u] || '' }; });
+  adminUsuarios.sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
   input.value = '';
-  var grid = document.getElementById('usuarios-grid');
-  grid.innerHTML = adminUsuarios.map(function(u, i) {
-    return '<div class="usuario-item">' +
-      '<span class="usuario-nombre">' + u + '</span>' +
-      '<button class="btn-del-user" onclick="eliminarUsuario(' + i + ')" title="Eliminar">✕</button>' +
-    '</div>';
-  }).join('');
-  showToast('✓ ' + nombre + ' agregado', 'success');
+  _dibujarGrilla();
+  showToast('✓ ' + nombre + ' agregado — recuerda editar su correo', 'success');
 }
 </script>
 </body>
