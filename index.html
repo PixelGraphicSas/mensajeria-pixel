@@ -1033,6 +1033,7 @@ function enviarSolicitud() {
       .then(function() {
         showToast('✓ Solicitud #' + consecutivo + ' enviada', 'success');
         enviarNotificacion(currentUser, 'recibida', solicitud);
+      notificarMensajero(solicitud);
         resetForm();
       })
       .catch(function(e) {
@@ -1237,7 +1238,7 @@ function completarVuelta(id) {
 }
 
 // ─── NOTIFICACIONES VÍA APPS SCRIPT ───
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyq92lplpKlLmGMQFZJCGm-sdFJ1-GNeWjxTsI8ykBHOvgkPMhmCaxItsxTHB-ZQqnLYA/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyc1NAErI_vp0R84xiLspNBLI6VhF79TBPpxjroDXaKE0V45-0R1Gej8nV_Q1qDWWnZqQ/exec";
 
 function enviarNotificacion(solicitante, evento, datosSolicitud) {
   var correo = DIRECTORIO_CORREOS[solicitante];
@@ -1289,6 +1290,7 @@ function enviarNotificacion(solicitante, evento, datosSolicitud) {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({
+      tipo:        'email',
       correo:      correo,
       solicitante: solicitante,
       asunto:      asuntos[evento],
@@ -1301,6 +1303,45 @@ function enviarNotificacion(solicitante, evento, datosSolicitud) {
     else console.error('Brevo error:', data);
   })
   .catch(function(e) { console.error('Notif fallida:', e); });
+}
+
+// ─── NOTIFICACIÓN TELEGRAM AL MENSAJERO ───
+function notificarMensajero(datosSolicitud) {
+  var consec = datosSolicitud.consecutivo ? '#' + datosSolicitud.consecutivo : '';
+  var prioEmoji = datosSolicitud.prioridad === 'Alta' ? '🔴' : '🟡';
+  var catEmoji = datosSolicitud.categoria === 'Envío' ? '📦' : '🏠';
+
+  var mensaje =
+    '🛵 <b>Nueva diligencia ' + consec + '</b>
+
+' +
+    prioEmoji + ' <b>Prioridad ' + (datosSolicitud.prioridad || '') + '</b>
+' +
+    catEmoji + ' ' + (datosSolicitud.categoria || '') + ' · ' + (datosSolicitud.tipo || '') + '
+
+' +
+    '👤 <b>Solicitante:</b> ' + (datosSolicitud.solicitante || '') + '
+' +
+    '📍 <b>Destino:</b> ' + (datosSolicitud.contacto || '') + '
+' +
+    '🗺 <b>Dirección:</b> ' + (datosSolicitud.direccion || '') + ', ' + (datosSolicitud.municipio || '') + '
+' +
+    (datosSolicitud.observaciones ? '⚠ <b>Obs:</b> ' + datosSolicitud.observaciones + '
+' : '') +
+    '
+<i>Entra a la app para gestionar la vuelta.</i>';
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ tipo: 'telegram', mensaje: mensaje })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.ok) console.log('✓ Telegram mensajero notificado');
+    else console.error('Telegram error:', data);
+  })
+  .catch(function(e) { console.error('Telegram fallido:', e); });
 }
 
 // ─── TOAST ───
