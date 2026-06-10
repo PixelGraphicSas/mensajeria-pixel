@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diligencias Pixeludas</title>
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="Logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -461,7 +461,7 @@
 
 <!-- ═══ PANTALLA LOGIN ═══ -->
 <div id="screen-login">
-  <img src="logo.png" class="login-logo" alt="Pixel Graphic" onerror="this.style.display='none'">
+  <img src="Logo.png" class="login-logo" alt="Pixel Graphic" onerror="this.style.display='none'">
   <div class="login-title">Diligencias Pixeludas</div>
   <div class="login-sub">Selecciona tu rol e ingresa tu PIN</div>
 
@@ -512,7 +512,7 @@
 <!-- ═══ APP PRINCIPAL ═══ -->
 <div id="app">
   <div class="topbar">
-    <img src="logo.png" alt="Pixel Graphic" onerror="this.style.display='none'">
+    <img src="Logo.png" alt="Pixel Graphic" onerror="this.style.display='none'">
     <div class="topbar-sep"></div>
     <div class="topbar-title">Diligencias Pixeludas</div>
     <div class="topbar-role" id="topbar-role-label"></div>
@@ -1000,16 +1000,15 @@ function enviarSolicitud() {
   btn.disabled = true;
   btn.textContent = 'Enviando...';
 
-  // Generar consecutivo PX-YYYYMMDD-XXXX
-  var ahora = new Date();
-  var yyyy = ahora.getFullYear();
-  var mm = String(ahora.getMonth()+1).padStart(2,'0');
-  var dd = String(ahora.getDate()).padStart(2,'0');
-  var rand = String(Math.floor(Math.random()*9000)+1000);
-  var consecutivo = 'PX-' + yyyy + mm + dd + '-' + rand;
+  // Consecutivo secuencial desde Firestore
 
-  var solicitud = {
-    consecutivo: consecutivo,
+  db.collection('config').doc('consecutivo').get().then(function(doc) {
+    var ultimo = doc.exists ? (doc.data().ultimo || 0) : 0;
+    var nuevo = ultimo + 1;
+    var consecutivo = String(nuevo).padStart(5, '0');
+
+    var solicitud = {
+      consecutivo: consecutivo,
     solicitante: currentUser,
     tipo: tipo,
     prioridad: selectedPriority,
@@ -1027,20 +1026,29 @@ function enviarSolicitud() {
     notificadoFin: false
   };
 
-  db.collection('solicitudes').add(solicitud)
-    .then(function(docRef) {
-      showToast('✓ Solicitud ' + consecutivo + ' enviada', 'success');
-      enviarNotificacion(currentUser, 'recibida', solicitud);
-      resetForm();
-    })
-    .catch(function(e) {
-      console.error(e);
-      showToast('Error al enviar. Intenta de nuevo.', 'error');
-    })
-    .finally(function() {
-      btn.disabled = false;
-      btn.textContent = 'Enviar solicitud';
-    });
+    return db.collection('config').doc('consecutivo').set({ ultimo: nuevo })
+      .then(function() {
+        return db.collection('solicitudes').add(solicitud);
+      })
+      .then(function() {
+        showToast('✓ Solicitud #' + consecutivo + ' enviada', 'success');
+        enviarNotificacion(currentUser, 'recibida', solicitud);
+        resetForm();
+      })
+      .catch(function(e) {
+        console.error(e);
+        showToast('Error al enviar. Intenta de nuevo.', 'error');
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = 'Enviar solicitud';
+      });
+  }).catch(function(e) {
+    console.error(e);
+    showToast('Error al conectar. Intenta de nuevo.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Enviar solicitud';
+  });
 }
 
 function resetForm() {
@@ -1132,6 +1140,11 @@ function cargarSolicitudesMensajero() {
       var lista = [];
       snap.forEach(function(doc) { lista.push({ id: doc.id, ...doc.data() }); });
       lista.sort(function(a, b) {
+        if (msgCurrentTab === 'completadas') {
+          var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
+          var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
+          return tb - ta; // más reciente primero
+        }
         if (a.prioridadOrder !== b.prioridadOrder) return a.prioridadOrder - b.prioridadOrder;
         var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
         var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
@@ -1229,11 +1242,11 @@ function enviarNotificacion(solicitante, evento, datosSolicitud) {
   var correo = DIRECTORIO_CORREOS[solicitante];
   if (!correo) { console.warn('Sin correo para:', solicitante); return; }
 
-  var ref = datosSolicitud.consecutivo ? '[' + datosSolicitud.consecutivo + '] ' : '';
+  var ref = datosSolicitud.consecutivo ? ' #' + datosSolicitud.consecutivo : '';
   var asuntos = {
-    'recibida':   '📋 ' + ref + 'Solicitud recibida — Diligencias Pixeludas',
-    'en-camino':  '🛵 ' + ref + 'Tu mensajería está en camino',
-    'completada': '✅ ' + ref + 'Diligencia completada'
+    'recibida':   '📋 Solicitud recibida — Diligencias Pixeludas' + ref,
+    'en-camino':  '🛵 Tu mensajería está en camino' + ref,
+    'completada': '✅ Diligencia completada' + ref
   };
 
   var iconos    = { 'recibida': '📋', 'en-camino': '🛵', 'completada': '✅' };
@@ -1250,7 +1263,7 @@ function enviarNotificacion(solicitante, evento, datosSolicitud) {
   var htmlBody =
     '<div style="font-family:\'Segoe UI\',Arial,sans-serif;max-width:520px;margin:0 auto;background:#0D1117;border-radius:12px;overflow:hidden;border:1px solid #30363D">' +
       '<div style="background:#161B22;padding:16px 28px;text-align:center;border-bottom:1px solid #30363D">' +
-        '<img src="https://pixelgraphicsas.github.io/mensajeria-pixel/logo.png" style="height:36px;mix-blend-mode:lighten" alt="Pixel Graphic">' +
+        '<img src="https://pixelgraphicsas.github.io/mensajeria-pixel/Logo.png" style="height:36px;mix-blend-mode:lighten" alt="Pixel Graphic">' +
       '</div>' +
       '<div style="background:' + colores[evento] + ';padding:20px 28px;text-align:center">' +
         '<div style="font-size:36px;margin-bottom:6px">' + iconos[evento] + '</div>' +
@@ -1304,13 +1317,30 @@ var chartPersonas, chartTipo, chartPrioridad, chartCategoria, chartEstado;
 var adminUsuarios = [];
 
 function initAdmin() {
-  // Fechas default: mes actual
   var hoy = new Date();
   var primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   document.getElementById('filtro-desde').value = primerDia.toISOString().split('T')[0];
   document.getElementById('filtro-hasta').value = hoy.toISOString().split('T')[0];
   cargarTodosLosDatos();
-  renderUsuariosAdmin();
+  cargarUsuariosFirestore();
+}
+
+function cargarUsuariosFirestore() {
+  db.collection('config').doc('usuarios').get().then(function(doc) {
+    if (doc.exists && doc.data().lista) {
+      var lista = doc.data().lista;
+      USUARIOS = lista.map(function(u){ return u.nombre; });
+      lista.forEach(function(u){ DIRECTORIO_CORREOS[u.nombre] = u.correo; });
+    }
+    renderUsuariosAdmin();
+  }).catch(function(){ renderUsuariosAdmin(); });
+}
+
+function guardarUsuariosFirestore() {
+  var lista = USUARIOS.map(function(u){ return { nombre: u, correo: DIRECTORIO_CORREOS[u] || '' }; });
+  db.collection('config').doc('usuarios').set({ lista: lista })
+    .then(function(){ console.log('Usuarios guardados'); })
+    .catch(function(e){ console.error('Error guardando usuarios:', e); });
 }
 
 function cargarTodosLosDatos() {
@@ -1611,6 +1641,7 @@ function guardarUsuario() {
 
   cerrarModalUsuario();
   _dibujarGrilla();
+  guardarUsuariosFirestore();
   showToast('✓ ' + nuevoNombre + ' actualizado', 'success');
 }
 
@@ -1622,6 +1653,7 @@ function eliminarUsuario(idx) {
   delete DIRECTORIO_CORREOS[nombre];
   adminUsuarios.splice(idx, 1);
   _dibujarGrilla();
+  guardarUsuariosFirestore();
   showToast('Usuario eliminado', 'success');
 }
 
@@ -1637,6 +1669,7 @@ function agregarUsuario() {
   adminUsuarios.sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
   input.value = '';
   _dibujarGrilla();
+  guardarUsuariosFirestore();
   showToast('✓ ' + nombre + ' agregado — recuerda editar su correo', 'success');
 }
 </script>
