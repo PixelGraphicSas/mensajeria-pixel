@@ -1320,7 +1320,7 @@ function notificarMensajero(datosSolicitud) {
     '📍 <b>Destino:</b> ' + (datosSolicitud.contacto || '') + nl +
     '🗺 <b>Dirección:</b> ' + (datosSolicitud.direccion || '') + ', ' + (datosSolicitud.municipio || '') + nl +
     (datosSolicitud.observaciones ? '⚠ <b>Obs:</b> ' + datosSolicitud.observaciones + nl : '') +
-    nl + '<i>Entra a la app para gestionar la vuelta.</i>';
+    nl + '👉 <a href="https://pixelgraphicsas.github.io/mensajeria-pixel/">Abrir app — Módulo Mensajero</a>';
 
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
