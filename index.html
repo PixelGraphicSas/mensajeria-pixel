@@ -1776,10 +1776,12 @@ var adminPeriodo = 'mes';
 var adminConfig = {};
 
 function initAdmin() {
-  setPeriodo('mes');
-  cargarTodosLosDatos();
+  cargarTodosLosDatos(); // carga datos y luego llama setPeriodo internamente
   cargarUsuariosFirestore();
   cargarConfig();
+  // Mostrar label del período inmediatamente
+  var hoy = new Date();
+  document.getElementById('admin-periodo-label').textContent = hoy.toLocaleDateString('es-CO', { month:'long', year:'numeric' });
 }
 
 function setPeriodo(p) {
@@ -2114,11 +2116,36 @@ function renderConfigUsuarios() {
         '<div class="cfg-usuario-correo">' + (DIRECTORIO_CORREOS[u] || 'sin correo') + '</div>' +
       '</div>' +
       '<div style="display:flex;gap:6px">' +
-        '<button onclick="abrirModalUsuario(' + i + ')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px" title="Editar">✏</button>' +
-        '<button onclick="eliminarUsuario(' + i + ')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px" title="Eliminar">✕</button>' +
+        '<button onclick="cfgEditarUsuario(' + i + ')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px" title="Editar">✏</button>' +
+        '<button onclick="cfgEliminarUsuario(' + i + ')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px" title="Eliminar">✕</button>' +
       '</div>' +
     '</div>';
   }).join('');
+}
+
+function cfgEditarUsuario(i) {
+  // Sincronizar adminUsuarios con USUARIOS actual
+  adminUsuarios = USUARIOS.map(function(u){ return { nombre:u, correo:DIRECTORIO_CORREOS[u]||'' }; });
+  if (i < 0 || i >= adminUsuarios.length) return;
+  modalEditIdx = i;
+  document.getElementById('modal-nombre').value = adminUsuarios[i].nombre;
+  document.getElementById('modal-correo').value = adminUsuarios[i].correo || '';
+  // Abrir modal (fuera del panel config)
+  document.getElementById('modal-usuario').style.display = 'flex';
+}
+
+function cfgEliminarUsuario(i) {
+  adminUsuarios = USUARIOS.map(function(u){ return { nombre:u, correo:DIRECTORIO_CORREOS[u]||'' }; });
+  if (i < 0 || i >= adminUsuarios.length) return;
+  if (!confirm('¿Eliminar a ' + adminUsuarios[i].nombre + ' de la lista?')) return;
+  var nombre = adminUsuarios[i].nombre;
+  var idx = USUARIOS.indexOf(nombre);
+  if (idx > -1) USUARIOS.splice(idx, 1);
+  delete DIRECTORIO_CORREOS[nombre];
+  adminUsuarios.splice(i, 1);
+  guardarUsuariosFirestore();
+  renderConfigUsuarios();
+  showToast('Usuario eliminado', 'success');
 }
 
 function cfgAgregarUsuario() {
@@ -2136,218 +2163,12 @@ function cfgAgregarUsuario() {
   showToast('✓ ' + nombre + ' agregado — edita su correo', 'success');
 }
 
-function initAdmin() {
-  var hoy = new Date();
-  var primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  document.getElementById('filtro-desde').value = primerDia.toISOString().split('T')[0];
-  document.getElementById('filtro-hasta').value = hoy.toISOString().split('T')[0];
-  cargarTodosLosDatos();
-  cargarUsuariosFirestore();
-}
 
-function cargarUsuariosFirestore() {
-  db.collection('config').doc('usuarios').get().then(function(doc) {
-    if (doc.exists && doc.data().lista) {
-      var lista = doc.data().lista;
-      USUARIOS = lista.map(function(u){ return u.nombre; });
-      lista.forEach(function(u){ DIRECTORIO_CORREOS[u.nombre] = u.correo; });
-    }
-    renderUsuariosAdmin();
-  }).catch(function(){ renderUsuariosAdmin(); });
-}
-
-function guardarUsuariosFirestore() {
-  var lista = USUARIOS.map(function(u){ return { nombre: u, correo: DIRECTORIO_CORREOS[u] || '' }; });
-  db.collection('config').doc('usuarios').set({ lista: lista })
-    .then(function(){ console.log('Usuarios guardados'); })
-    .catch(function(e){ console.error('Error guardando usuarios:', e); });
-}
-
-function cargarTodosLosDatos() {
-  db.collection('solicitudes').get().then(function(snap) {
-    adminData = [];
-    snap.forEach(function(doc) { adminData.push({ id: doc.id, ...doc.data() }); });
-    aplicarFiltro();
-  });
-}
-
-function aplicarFiltro() {
-  var desde = document.getElementById('filtro-desde').value;
-  var hasta = document.getElementById('filtro-hasta').value;
-  var filtered = adminData;
-
-  if (desde) {
-    var desdeTs = new Date(desde + 'T00:00:00').getTime() / 1000;
-    filtered = filtered.filter(function(s) {
-      return s.fechaCreacion && s.fechaCreacion.seconds >= desdeTs;
-    });
-  }
-  if (hasta) {
-    var hastaTs = new Date(hasta + 'T23:59:59').getTime() / 1000;
-    filtered = filtered.filter(function(s) {
-      return s.fechaCreacion && s.fechaCreacion.seconds <= hastaTs;
-    });
-  }
-
-  filtered.sort(function(a, b) {
-    var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
-    var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
-    return tb - ta;
-  });
-
-  renderKPIs(filtered);
-  renderCharts(filtered);
-  renderTabla(filtered.slice(0, 20));
-}
-
-function limpiarFiltro() {
-  document.getElementById('filtro-desde').value = '';
-  document.getElementById('filtro-hasta').value = '';
-  var sorted = adminData.slice().sort(function(a,b){
-    var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
-    var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
-    return tb - ta;
-  });
-  renderKPIs(sorted);
-  renderCharts(sorted);
-  renderTabla(sorted.slice(0, 20));
-}
-
-function renderKPIs(data) {
-  var total = data.length;
-  var pendiente = data.filter(function(s){ return s.estado === 'Pendiente'; }).length;
-  var encamino = data.filter(function(s){ return s.estado === 'En camino'; }).length;
-  var completada = data.filter(function(s){ return s.estado === 'Completada'; }).length;
-  var empresarial = data.filter(function(s){ return s.tipo === 'Empresarial'; }).length;
-  var personal = data.filter(function(s){ return s.tipo === 'Personal'; }).length;
-  var envio = data.filter(function(s){ return s.categoria === 'Envío'; }).length;
-  var recogida = data.filter(function(s){ return s.categoria === 'Recogida'; }).length;
-
-  document.getElementById('kpi-total').textContent = total;
-  document.getElementById('kpi-pendiente').textContent = pendiente;
-  document.getElementById('kpi-encamino').textContent = encamino;
-  document.getElementById('kpi-completada').textContent = completada;
-  document.getElementById('kpi-empresarial').textContent = empresarial;
-  document.getElementById('kpi-personal').textContent = personal;
-  document.getElementById('kpi-envio').textContent = envio;
-  document.getElementById('kpi-recogida').textContent = recogida;
-}
-
-function renderCharts(data) {
-  // Colores base
-  var C = { accent:'#00E5A0', danger:'#F85149', warning:'#E3B341', info:'#58A6FF', purple:'#BF7FFF', border:'#30363D', text2:'#8B949E' };
-
-  Chart.defaults.color = C.text2;
-  Chart.defaults.font.family = "'Space Grotesk', sans-serif";
-
-  // ── Por persona (barras) ──
-  var personCount = {};
-  data.forEach(function(s){ personCount[s.solicitante] = (personCount[s.solicitante] || 0) + 1; });
-  var personEntries = Object.entries(personCount).sort(function(a,b){ return b[1]-a[1]; }).slice(0,12);
-
-  if (chartPersonas) chartPersonas.destroy();
-  chartPersonas = new Chart(document.getElementById('chart-personas'), {
-    type: 'bar',
-    data: {
-      labels: personEntries.map(function(e){ return e[0]; }),
-      datasets: [{ data: personEntries.map(function(e){ return e[1]; }), backgroundColor: C.accent + 'CC', borderColor: C.accent, borderWidth: 1, borderRadius: 4 }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: C.border + '66' }, ticks: { maxRotation: 35, font: { size: 11 } } },
-        y: { grid: { color: C.border + '66' }, ticks: { stepSize: 1 } }
-      }
-    }
-  });
-
-  // ── Tipo ──
-  var empCount = data.filter(function(s){ return s.tipo==='Empresarial'; }).length;
-  var perCount = data.filter(function(s){ return s.tipo==='Personal'; }).length;
-  if (chartTipo) chartTipo.destroy();
-  chartTipo = new Chart(document.getElementById('chart-tipo'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Empresarial','Personal'],
-      datasets: [{ data: [empCount, perCount], backgroundColor: [C.info+'CC', C.purple+'CC'], borderColor: [C.info, C.purple], borderWidth: 1 }]
-    },
-    options: { plugins: { legend: { position:'bottom', labels:{ boxWidth:12, padding:12 } } }, cutout:'65%' }
-  });
-
-  // ── Prioridad ──
-  var altaCount = data.filter(function(s){ return s.prioridad==='Alta'; }).length;
-  var mediaCount = data.filter(function(s){ return s.prioridad==='Media'; }).length;
-  if (chartPrioridad) chartPrioridad.destroy();
-  chartPrioridad = new Chart(document.getElementById('chart-prioridad'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Alta','Media'],
-      datasets: [{ data: [altaCount, mediaCount], backgroundColor: [C.danger+'CC', C.warning+'CC'], borderColor: [C.danger, C.warning], borderWidth: 1 }]
-    },
-    options: { plugins: { legend: { position:'bottom', labels:{ boxWidth:12, padding:12 } } }, cutout:'65%' }
-  });
-
-  // ── Categoría ──
-  var envioCount = data.filter(function(s){ return s.categoria==='Envío'; }).length;
-  var recogidaCount = data.filter(function(s){ return s.categoria==='Recogida'; }).length;
-  if (chartCategoria) chartCategoria.destroy();
-  chartCategoria = new Chart(document.getElementById('chart-categoria'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Envío','Recogida'],
-      datasets: [{ data: [envioCount, recogidaCount], backgroundColor: [C.info+'CC', C.accent+'CC'], borderColor: [C.info, C.accent], borderWidth: 1 }]
-    },
-    options: { plugins: { legend: { position:'bottom', labels:{ boxWidth:12, padding:12 } } }, cutout:'65%' }
-  });
-
-  // ── Estado ──
-  var pendCount = data.filter(function(s){ return s.estado==='Pendiente'; }).length;
-  var camCount = data.filter(function(s){ return s.estado==='En camino'; }).length;
-  var compCount = data.filter(function(s){ return s.estado==='Completada'; }).length;
-  if (chartEstado) chartEstado.destroy();
-  chartEstado = new Chart(document.getElementById('chart-estado'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Pendiente','En camino','Completada'],
-      datasets: [{ data: [pendCount, camCount, compCount], backgroundColor: [C.warning+'CC', C.info+'CC', C.accent+'CC'], borderColor: [C.warning, C.info, C.accent], borderWidth: 1 }]
-    },
-    options: { plugins: { legend: { position:'bottom', labels:{ boxWidth:12, padding:12 } } }, cutout:'65%' }
-  });
-}
-
-function renderTabla(data) {
-  var statusClass = { 'Pendiente':'status-pendiente', 'En camino':'status-en-camino', 'Completada':'status-completada' };
-  var priClass = { 'Alta':'tag-alta', 'Media':'tag-media' };
-  var body = document.getElementById('tabla-body');
-
-  if (data.length === 0) {
-    body.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-3);padding:32px">Sin solicitudes en el período seleccionado</td></tr>';
-    return;
-  }
-
-  body.innerHTML = data.map(function(s) {
-    var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds*1000).toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'}) : '—';
-    return '<tr>' +
-      '<td style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:#00E5A0">' + (s.consecutivo ? '#'+s.consecutivo : '#'+s.id.slice(-6).toUpperCase()) + '</td>' +
-      '<td style="font-size:12px;color:var(--text-2)">' + fecha + '</td>' +
-      '<td class="tabla-nombre">' + (s.solicitante||'—') + '</td>' +
-      '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (s.contacto||'—') + '</td>' +
-      '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2)">' + (s.direccion||'—') + '</td>' +
-      '<td style="color:var(--text-2)">' + (s.municipio||'—') + '</td>' +
-      '<td><span class="tag ' + (s.tipo==='Empresarial'?'tag-empresarial':'tag-personal') + '">' + (s.tipo||'—') + '</span></td>' +
-      '<td><span class="tag ' + (priClass[s.prioridad]||'tag-media') + '">' + (s.prioridad||'—') + '</span></td>' +
-      '<td><span class="tag ' + (s.categoria==='Envío'?'tag-envio':'tag-recogida') + '">' + (s.categoria||'—') + '</span></td>' +
-      '<td><span class="status-pill ' + (statusClass[s.estado]||'status-pendiente') + '">' + (s.estado||'—') + '</span></td>' +
-      '<td class="tabla-id">' + (s.horaInicio||'—') + '</td>' +
-      '<td class="tabla-id">' + (s.horaFin||'—') + '</td>' +
-      '<td><a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="color:#58A6FF;font-size:13px;text-decoration:none">📍</a></td>' +
-    '</tr>';
-  }).join('');
-}
-
+// ─── EXPORTAR EXCEL ───
 function exportarExcel() {
-  var desde = document.getElementById('filtro-desde').value;
-  var hasta = document.getElementById('filtro-hasta').value;
+  var hoy = new Date();
+  var desde = document.getElementById('filtro-desde') ? document.getElementById('filtro-desde').value : '';
+  var hasta = document.getElementById('filtro-hasta') ? document.getElementById('filtro-hasta').value : '';
   var filtered = adminData;
 
   if (desde) {
@@ -2358,17 +2179,16 @@ function exportarExcel() {
     var hastaTs = new Date(hasta + 'T23:59:59').getTime() / 1000;
     filtered = filtered.filter(function(s){ return s.fechaCreacion && s.fechaCreacion.seconds <= hastaTs; });
   }
-
   filtered.sort(function(a,b){
-    var ta = a.fechaCreacion ? a.fechaCreacion.seconds : 0;
-    var tb = b.fechaCreacion ? b.fechaCreacion.seconds : 0;
-    return tb - ta;
+    return (b.fechaCreacion ? b.fechaCreacion.seconds : 0) - (a.fechaCreacion ? a.fechaCreacion.seconds : 0);
   });
+
+  if (filtered.length === 0) { showToast('Sin datos para exportar', 'error'); return; }
 
   var rows = filtered.map(function(s) {
     var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds*1000).toLocaleDateString('es-CO') : '';
     return {
-      'ID': '#' + s.id.slice(-6).toUpperCase(),
+      'ID': s.consecutivo ? '#'+s.consecutivo : s.id.slice(-6).toUpperCase(),
       'Fecha': fecha,
       'Solicitante': s.solicitante || '',
       'Contacto / Empresa': s.contacto || '',
@@ -2384,18 +2204,11 @@ function exportarExcel() {
     };
   });
 
-  if (rows.length === 0) { showToast('Sin datos para exportar', 'error'); return; }
-
   var ws = XLSX.utils.json_to_sheet(rows);
   var wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Diligencias');
-
-  var nombreArchivo = 'diligencias_pixeludas';
-  if (desde) nombreArchivo += '_' + desde;
-  if (hasta) nombreArchivo += '_al_' + hasta;
-  nombreArchivo += '.xlsx';
-
-  XLSX.writeFile(wb, nombreArchivo);
+  var nombre = 'diligencias_pixeludas_' + hoy.toISOString().split('T')[0] + '.xlsx';
+  XLSX.writeFile(wb, nombre);
   showToast('✓ Excel descargado (' + rows.length + ' registros)', 'success');
 }
 
