@@ -928,9 +928,14 @@
             <table class="tabla">
               <thead>
                 <tr>
-                  <th>#</th><th>Fecha</th><th>Solicitante</th><th>Destino</th>
-                  <th>Dirección</th><th>Municipio</th><th>Tipo</th><th>Prioridad</th>
-                  <th>Categoría</th><th>Estado</th><th>Inicio</th><th>Fin</th><th></th>
+                  <th style="width:110px"># · Fecha</th>
+                  <th style="width:130px">Solicitante</th>
+                  <th>Destino · Dirección</th>
+                  <th style="width:130px">Tipo · Categoría</th>
+                  <th style="width:80px">Prioridad</th>
+                  <th style="width:100px">Estado</th>
+                  <th style="width:110px">Horario</th>
+                  <th style="width:36px"></th>
                 </tr>
               </thead>
               <tbody id="tabla-body"></tbody>
@@ -2011,24 +2016,33 @@ function renderTabla(data) {
   var priClass = { 'Alta':'tag-alta','Media':'tag-media' };
   var body = document.getElementById('tabla-body');
   if (data.length === 0) {
-    body.innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--text-3);padding:32px">Sin solicitudes en el período seleccionado</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-3);padding:32px">Sin solicitudes en el período seleccionado</td></tr>';
     return;
   }
   body.innerHTML = data.map(function(s) {
-    var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds*1000).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds*1000).toLocaleDateString('es-CO',{day:'2-digit',month:'short'}) : '—';
+    var id = s.consecutivo ? '#'+s.consecutivo : s.id.slice(-6).toUpperCase();
+    var horario = (s.horaInicio||'—') + (s.horaFin ? ' → '+s.horaFin : '');
+    var dirCorta = (s.direccion||'—');
+    if (dirCorta.length > 28) dirCorta = dirCorta.slice(0,26) + '…';
+    var muni = s.municipio ? ' · ' + s.municipio : '';
     return '<tr>' +
-      '<td class="tabla-id">' + (s.consecutivo ? '#'+s.consecutivo : s.id.slice(-6).toUpperCase()) + '</td>' +
-      '<td style="font-size:12px;color:var(--text-2);white-space:nowrap">' + fecha + '</td>' +
-      '<td class="tabla-nombre">' + (s.solicitante||'—') + '</td>' +
-      '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (s.contacto||'—') + '</td>' +
-      '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2)">' + (s.direccion||'—') + '</td>' +
-      '<td style="color:var(--text-2)">' + (s.municipio||'—') + '</td>' +
-      '<td><span class="tag ' + (s.tipo==='Empresarial'?'tag-empresarial':'tag-personal') + '">' + (s.tipo||'—') + '</span></td>' +
+      '<td style="white-space:nowrap">' +
+        '<div style="color:#00E5A0;font-size:12px;font-weight:700;font-family:JetBrains Mono,monospace">' + id + '</div>' +
+        '<div style="font-size:11px;color:var(--text-3);margin-top:2px">' + fecha + '</div>' +
+      '</td>' +
+      '<td class="tabla-nombre" style="font-size:13px">' + (s.solicitante||'—') + '</td>' +
+      '<td>' +
+        '<div style="font-weight:600;font-size:13px">' + (s.contacto||'—') + '</div>' +
+        '<div style="font-size:11px;color:var(--text-3);margin-top:2px">' + dirCorta + muni + '</div>' +
+      '</td>' +
+      '<td style="white-space:nowrap">' +
+        '<span class="tag ' + (s.tipo==='Empresarial'?'tag-empresarial':'tag-personal') + '" style="font-size:10px">' + (s.tipo||'—') + '</span>' +
+        '<br><span class="tag ' + (s.categoria==='Envío'?'tag-envio':'tag-recogida') + '" style="font-size:10px;margin-top:4px;display:inline-block">' + (s.categoria||'—') + '</span>' +
+      '</td>' +
       '<td><span class="tag ' + (priClass[s.prioridad]||'tag-media') + '">' + (s.prioridad||'—') + '</span></td>' +
-      '<td><span class="tag ' + (s.categoria==='Envío'?'tag-envio':'tag-recogida') + '">' + (s.categoria||'—') + '</span></td>' +
       '<td><span class="status-pill ' + (statusClass[s.estado]||'status-pendiente') + '">' + (s.estado||'—') + '</span></td>' +
-      '<td style="font-family:JetBrains Mono,monospace;font-size:12px;color:var(--text-2)">' + (s.horaInicio||'—') + '</td>' +
-      '<td style="font-family:JetBrains Mono,monospace;font-size:12px;color:var(--text-2)">' + (s.horaFin||'—') + '</td>' +
+      '<td style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--text-2);white-space:nowrap">' + horario + '</td>' +
       '<td><a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="color:var(--info);font-size:14px;text-decoration:none">📍</a></td>' +
     '</tr>';
   }).join('');
