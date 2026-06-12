@@ -383,6 +383,73 @@
     text-align: center; font-size: 14px; color: var(--text-2);
   }
 
+  /* ─── PANEL ADMIN V2 ─── */
+  .admin-content { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+  .admin-section { margin-bottom: 28px; }
+  .admin-section-title {
+    font-size: 11px; font-weight: 600; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 1px;
+    font-family: JetBrains Mono, monospace;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .admin-section-title::before { content:''; display:block; width:3px; height:12px; background:var(--accent); border-radius:2px; }
+
+  /* Período buttons */
+  .periodo-btn {
+    padding: 6px 14px; border-radius: 7px; border: none;
+    background: none; color: var(--text-2); cursor: pointer;
+    font-family: Space Grotesk, sans-serif; font-size: 13px; font-weight: 500;
+    transition: all var(--transition);
+  }
+  .periodo-btn.active { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .periodo-btn:hover:not(.active) { color: var(--text); }
+
+  /* KPI cards v2 */
+  .kpi-card-v2 {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px 22px;
+    transition: border-color var(--transition);
+  }
+  .kpi-card-v2:hover { border-color: rgba(139,148,158,0.4); }
+  .kpi-v2-label { font-size: 12px; color: var(--text-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-v2-value { font-size: 32px; font-weight: 700; font-family: JetBrains Mono, monospace; letter-spacing: -1.5px; margin-bottom: 12px; line-height: 1; }
+  .kpi-v2-bar { height: 3px; background: var(--surface2); border-radius: 2px; margin-bottom: 8px; overflow: hidden; }
+  .kpi-v2-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+  .kpi-v2-sub { font-size: 11px; color: var(--text-3); font-family: JetBrains Mono, monospace; }
+
+  /* Chart cards */
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+  .chart-title { font-size: 13px; font-weight: 600; color: var(--text-2); }
+
+  /* Tabla */
+  .tabla-wrap { overflow-x: auto; }
+  .tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tabla th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.6px; border-bottom: 1px solid var(--border); white-space: nowrap; background: var(--surface2); }
+  .tabla td { padding: 12px 16px; border-bottom: 1px solid rgba(48,54,61,0.5); vertical-align: middle; }
+  .tabla tr:last-child td { border-bottom: none; }
+  .tabla tr:hover td { background: rgba(28,35,48,0.5); }
+  .tabla-id { font-family: JetBrains Mono, monospace; font-size: 12px; font-weight: 700; color: var(--accent); }
+  .tabla-nombre { font-weight: 600; }
+
+  /* Config panel usuarios */
+  .cfg-usuario-item { display:flex; align-items:center; justify-content:space-between; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:8px 12px; }
+  .cfg-usuario-nombre { font-size:13px; font-weight:500; }
+  .cfg-usuario-correo { font-size:11px; color:var(--text-3); font-family:JetBrains Mono,monospace; margin-top:1px; }
+
+  @media (max-width: 900px) {
+    #kpi-row-1 { grid-template-columns: repeat(2,1fr) !important; }
+    .admin-content div[style*="grid-template-columns:repeat(4"] { grid-template-columns: repeat(2,1fr) !important; }
+    .admin-content div[style*="grid-template-columns:2fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+    .admin-content div[style*="grid-template-columns:2fr 1fr;"] { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .login-roles { grid-template-columns: 1fr; }
+    .main-content { padding: 20px 16px; }
+    .admin-content { padding: 16px; }
+    #kpi-row-1 { grid-template-columns: repeat(2,1fr) !important; }
+  }
+
   /* ─── PANEL ADMIN ─── */
   .admin-content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   .admin-section { margin-bottom: 36px; }
@@ -673,97 +740,201 @@
 
   <!-- VISTA ADMIN -->
   <div id="view-admin" style="display:none">
+
+    <!-- Panel de configuración (slide lateral) -->
+    <div id="config-overlay" onclick="cerrarConfig()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;backdrop-filter:blur(4px)"></div>
+    <div id="config-panel" style="display:none;position:fixed;top:0;right:0;width:420px;max-width:95vw;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:201;overflow-y:auto;transform:translateX(100%);transition:transform 0.3s ease">
+      <div style="padding:24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:16px;font-weight:700">⚙ Configuración</div>
+          <div style="font-size:12px;color:var(--text-2);margin-top:2px">Ajustes operativos del sistema</div>
+        </div>
+        <button onclick="cerrarConfig()" style="background:none;border:none;color:var(--text-2);font-size:22px;cursor:pointer">✕</button>
+      </div>
+      <div style="padding:24px;display:flex;flex-direction:column;gap:20px">
+
+        <div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-family:JetBrains Mono,monospace">Mensajero</div>
+        <div class="form-group">
+          <label class="form-label">Nombre del mensajero</label>
+          <input class="form-input" id="cfg-nombre-mensajero" type="text" placeholder="Nombre completo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PIN del mensajero</label>
+          <input class="form-input" id="cfg-pin-mensajero" type="text" maxlength="6" placeholder="4-6 dígitos">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número WhatsApp mensajero</label>
+          <input class="form-input" id="cfg-whatsapp" type="text" placeholder="+573001234567">
+        </div>
+
+        <div style="height:1px;background:var(--border)"></div>
+        <div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-family:JetBrains Mono,monospace">Telegram Bot</div>
+        <div class="form-group">
+          <label class="form-label">Token del bot</label>
+          <input class="form-input" id="cfg-tg-token" type="text" placeholder="1234567890:AAE...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Chat ID del mensajero</label>
+          <input class="form-input" id="cfg-tg-chatid" type="text" placeholder="8564312511">
+        </div>
+
+        <div style="height:1px;background:var(--border)"></div>
+        <div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-family:JetBrains Mono,monospace">Seguridad</div>
+        <div class="form-group">
+          <label class="form-label">PIN del administrador</label>
+          <input class="form-input" id="cfg-pin-admin" type="text" maxlength="6" placeholder="4-6 dígitos">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo remitente notificaciones</label>
+          <input class="form-input" id="cfg-email-sender" type="email" placeholder="mensajeriapixelgraphic@gmail.com">
+        </div>
+
+        <div style="height:1px;background:var(--border)"></div>
+        <div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-family:JetBrains Mono,monospace">Solicitantes</div>
+        <div id="config-usuarios-grid" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="cfg-nuevo-usuario" type="text" placeholder="Nombre completo">
+          <button onclick="cfgAgregarUsuario()" style="padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--accent);font-family:Space Grotesk,sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">+ Agregar</button>
+        </div>
+
+        <button onclick="guardarConfig()" style="width:100%;padding:14px;background:var(--accent);color:#0D1117;border:none;border-radius:var(--radius);font-family:Space Grotesk,sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">Guardar configuración</button>
+      </div>
+    </div>
+
     <div class="admin-content">
 
-      <!-- Filtro fechas -->
-      <div class="filter-bar">
-        <label>Desde</label>
-        <input type="date" class="form-input" id="filtro-desde">
-        <label>Hasta</label>
-        <input type="date" class="form-input" id="filtro-hasta">
-        <button class="btn-filter" onclick="aplicarFiltro()">Aplicar filtro</button>
-        <button class="btn-filter secondary" onclick="limpiarFiltro()">Ver todo</button>
-        <button class="btn-filter secondary" onclick="exportarExcel()" style="margin-left:auto">⬇ Exportar Excel</button>
-      </div>
-
-      <!-- KPIs fila 1: estado actual -->
-      <div class="admin-section">
-        <div class="admin-section-title">Estado actual</div>
-        <div class="kpi-grid">
-          <div class="kpi-card"><div class="kpi-label">Total en período</div><div class="kpi-value kpi-accent" id="kpi-total">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Pendientes</div><div class="kpi-value kpi-warning" id="kpi-pendiente">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">En camino</div><div class="kpi-value kpi-info" id="kpi-encamino">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Completadas</div><div class="kpi-value kpi-accent" id="kpi-completada">—</div></div>
+      <!-- Header dashboard -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:24px;font-weight:700;letter-spacing:-0.5px">Dashboard</div>
+          <div style="font-size:13px;color:var(--text-2);margin-top:2px" id="admin-periodo-label">Cargando...</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div style="display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:4px">
+            <button class="periodo-btn active" id="pbtn-mes" onclick="setPeriodo('mes')">Mes</button>
+            <button class="periodo-btn" id="pbtn-semana" onclick="setPeriodo('semana')">Semana</button>
+            <button class="periodo-btn" id="pbtn-anio" onclick="setPeriodo('anio')">Año</button>
+            <button class="periodo-btn" id="pbtn-rango" onclick="setPeriodo('rango')">Rango</button>
+          </div>
+          <button onclick="exportarExcel()" style="padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-2);font-family:Space Grotesk,sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.18s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-2)'">⬇ Excel</button>
+          <button onclick="abrirConfig()" style="padding:9px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-2);font-family:Space Grotesk,sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.18s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-2)'">⚙ Configuración</button>
         </div>
       </div>
 
-      <!-- KPIs fila 2: composición -->
-      <div class="admin-section">
-        <div class="admin-section-title">Composición</div>
-        <div class="kpi-grid">
-          <div class="kpi-card"><div class="kpi-label">Empresariales</div><div class="kpi-value" id="kpi-empresarial">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Personales</div><div class="kpi-value" id="kpi-personal">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Envíos</div><div class="kpi-value kpi-info" id="kpi-envio">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Recogidas</div><div class="kpi-value kpi-accent" id="kpi-recogida">—</div></div>
+      <!-- Rango personalizado (oculto por defecto) -->
+      <div id="rango-personalizado" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:20px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
+        <label style="font-size:13px;color:var(--text-2)">Desde</label>
+        <input type="date" class="form-input" id="filtro-desde" style="width:auto;min-width:140px">
+        <label style="font-size:13px;color:var(--text-2)">Hasta</label>
+        <input type="date" class="form-input" id="filtro-hasta" style="width:auto;min-width:140px">
+        <button onclick="aplicarFiltro()" style="padding:9px 18px;background:var(--accent);color:#0D1117;border:none;border-radius:var(--radius);font-family:Space Grotesk,sans-serif;font-size:13px;font-weight:700;cursor:pointer">Aplicar</button>
+      </div>
+
+      <!-- KPIs fila 1 — Estado -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px" id="kpi-row-1">
+        <div class="kpi-card-v2" id="kpi-card-total">
+          <div class="kpi-v2-label">Total solicitudes</div>
+          <div class="kpi-v2-value kpi-accent" id="kpi-total">—</div>
+          <div class="kpi-v2-bar"><div class="kpi-v2-bar-fill" style="background:var(--accent);width:100%"></div></div>
+          <div class="kpi-v2-sub" id="kpi-total-sub">en el período</div>
+        </div>
+        <div class="kpi-card-v2">
+          <div class="kpi-v2-label">Completadas</div>
+          <div class="kpi-v2-value kpi-accent" id="kpi-completada">—</div>
+          <div class="kpi-v2-bar"><div class="kpi-v2-bar-fill" id="bar-completada" style="background:var(--accent);width:0%"></div></div>
+          <div class="kpi-v2-sub" id="kpi-completada-pct">— del total</div>
+        </div>
+        <div class="kpi-card-v2">
+          <div class="kpi-v2-label">En camino</div>
+          <div class="kpi-v2-value kpi-info" id="kpi-encamino">—</div>
+          <div class="kpi-v2-bar"><div class="kpi-v2-bar-fill" id="bar-encamino" style="background:var(--info);width:0%"></div></div>
+          <div class="kpi-v2-sub" id="kpi-encamino-pct">— del total</div>
+        </div>
+        <div class="kpi-card-v2">
+          <div class="kpi-v2-label">Pendientes</div>
+          <div class="kpi-v2-value kpi-warning" id="kpi-pendiente">—</div>
+          <div class="kpi-v2-bar"><div class="kpi-v2-bar-fill" id="bar-pendiente" style="background:var(--warning);width:0%"></div></div>
+          <div class="kpi-v2-sub" id="kpi-pendiente-pct">— del total</div>
         </div>
       </div>
 
-      <!-- Gráficas -->
-      <div class="admin-section">
-        <div class="admin-section-title">Análisis gráfico</div>
-        <div class="charts-grid">
-          <div class="chart-card">
-            <div class="chart-title">Solicitudes por persona</div>
-            <div class="chart-wrap"><canvas id="chart-personas" height="220"></canvas></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">Tipo de diligencia</div>
-            <div class="chart-wrap"><canvas id="chart-tipo" height="200"></canvas></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">Prioridad</div>
-            <div class="chart-wrap"><canvas id="chart-prioridad" height="200"></canvas></div>
-          </div>
+      <!-- KPIs fila 2 — Composición -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px">
+        <div class="kpi-card-v2">
+          <div class="kpi-v2-label">Empresariales</div>
+          <div class="kpi-v2-value" id="kpi-empresarial">—</div>
+          <div class="kpi-v2-bar"><div class="kpi-v2-bar-fill" id="bar-empresarial" style="background:#BF7FFF;width:0%"></div></div>
+          <div class="kpi-v2-sub" id="kpi-empresarial-pct">— del total</div>
         </div>
-        <div class="charts-grid" style="grid-template-columns:1fr 1fr;margin-bottom:0">
-          <div class="chart-card">
-            <div class="chart-title">Categoría (Envío / Recogida)</div>
-            <div class="chart-wrap"><canvas id="chart-categoria" height="200"></canvas></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">Estado</div>
-            <div class="chart-wrap"><canvas id="chart-estado" height="200"></canvas></div>
-          </div>
+        <div class="kpi-card-v2">
+          <div class="kpi-v2-label">Personales</div>
+          <div class="kpi-v2-value" id="kpi-personal">—</div>
+          <div class="kpi-v2-bar"><div class="kpi-v2-bar-fill" id="bar-personal" style="background:#BF7FFF;width:0%"></div></div>
+          <div class="kpi-v2-sub" id="kpi-personal-pct">— del total</div>
+        </div>
+        <div class="kpi-card-v2">
+          <div class="kpi-v2-label">Envíos</div>
+          <div class="kpi-v2-value kpi-info" id="kpi-envio">—</div>
+          <div class="kpi-v2-bar"><div class="kpi-v2-bar-fill" id="bar-envio" style="background:var(--info);width:0%"></div></div>
+          <div class="kpi-v2-sub" id="kpi-envio-pct">— del total</div>
+        </div>
+        <div class="kpi-card-v2">
+          <div class="kpi-v2-label">Recogidas</div>
+          <div class="kpi-v2-value kpi-accent" id="kpi-recogida">—</div>
+          <div class="kpi-v2-bar"><div class="kpi-v2-bar-fill" id="bar-recogida" style="background:var(--accent);width:0%"></div></div>
+          <div class="kpi-v2-sub" id="kpi-recogida-pct">— del total</div>
         </div>
       </div>
 
-      <!-- Tabla recientes -->
-      <div class="admin-section">
-        <div class="admin-section-title">Solicitudes recientes</div>
+      <!-- Gráfica tendencia (línea) + donuts -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">
         <div class="chart-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="chart-title">Tendencia de solicitudes</div>
+            <div style="font-size:11px;color:var(--text-3);font-family:JetBrains Mono,monospace" id="chart-tendencia-label"></div>
+          </div>
+          <canvas id="chart-tendencia" height="160"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:16px">Estado actual</div>
+          <canvas id="chart-estado" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Barras por persona + donuts composición -->
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin-bottom:28px">
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:16px">Solicitudes por persona</div>
+          <canvas id="chart-personas" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:16px">Tipo</div>
+          <canvas id="chart-tipo" height="180"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:16px">Prioridad</div>
+          <canvas id="chart-prioridad" height="180"></canvas>
+        </div>
+      </div>
+
+      <!-- Tabla solicitudes recientes -->
+      <div class="admin-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="admin-section-title" style="margin-bottom:0">Solicitudes recientes</div>
+          <div style="font-size:12px;color:var(--text-3);font-family:JetBrains Mono,monospace" id="tabla-count-label"></div>
+        </div>
+        <div class="chart-card" style="padding:0;overflow:hidden">
           <div class="tabla-wrap">
             <table class="tabla">
               <thead>
                 <tr>
-                  <th>ID</th><th>Fecha</th><th>Solicitante</th><th>Contacto / Empresa</th>
+                  <th>#</th><th>Fecha</th><th>Solicitante</th><th>Destino</th>
                   <th>Dirección</th><th>Municipio</th><th>Tipo</th><th>Prioridad</th>
-                  <th>Categoría</th><th>Estado</th><th>Inicio</th><th>Fin</th><th>Mapa</th>
+                  <th>Categoría</th><th>Estado</th><th>Inicio</th><th>Fin</th><th></th>
                 </tr>
               </thead>
               <tbody id="tabla-body"></tbody>
             </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Gestión usuarios -->
-      <div class="admin-section">
-        <div class="admin-section-title">Gestión de solicitantes</div>
-        <div class="chart-card">
-          <div class="usuarios-grid" id="usuarios-grid"></div>
-          <div class="add-user-row">
-            <input class="form-input" id="nuevo-usuario" type="text" placeholder="Nombre completo del nuevo solicitante">
-            <button class="btn-add-user" onclick="agregarUsuario()">+ Agregar</button>
           </div>
         </div>
       </div>
@@ -1001,10 +1172,12 @@ function pinDel() {
 
 function pinEnter() {
   if (currentRole === 'mensajero') {
-    if (pinBuffer === MENSAJERO_PIN) enterApp('mensajero');
+    var pinMsg = (window._pinMensajeroLive || MENSAJERO_PIN);
+    if (pinBuffer === pinMsg) enterApp('mensajero');
     else { showLoginError('PIN incorrecto'); pinBuffer = ''; updatePinDots(); }
   } else if (currentRole === 'admin') {
-    if (pinBuffer === ADMIN_PIN) enterApp('admin');
+    var pinAdm = (window._pinAdminLive || ADMIN_PIN);
+    if (pinBuffer === pinAdm) enterApp('admin');
     else { showLoginError('PIN incorrecto'); pinBuffer = ''; updatePinDots(); }
   }
 }
@@ -1474,6 +1647,22 @@ function completarVuelta(id) {
 
 // ─── NOTIFICACIONES VÍA APPS SCRIPT ───
 var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyc1NAErI_vp0R84xiLspNBLI6VhF79TBPpxjroDXaKE0V45-0R1Gej8nV_Q1qDWWnZqQ/exec";
+// Cargar config de Firestore al iniciar
+(function() {
+  setTimeout(function() {
+    if (typeof db !== 'undefined') {
+      db.collection('config').doc('ajustes').get().then(function(doc) {
+        if (doc.exists) {
+          var cfg = doc.data();
+          if (cfg.pinMensajero) window._pinMensajeroLive = cfg.pinMensajero;
+          if (cfg.pinAdmin) window._pinAdminLive = cfg.pinAdmin;
+          if (cfg.tgToken) window._tgTokenLive = cfg.tgToken;
+          if (cfg.tgChatId) window._tgChatIdLive = cfg.tgChatId;
+        }
+      }).catch(function(){});
+    }
+  }, 1000);
+})();
 
 function enviarNotificacion(solicitante, evento, datosSolicitud) {
   var correo = DIRECTORIO_CORREOS[solicitante];
@@ -1579,10 +1768,373 @@ function showToast(msg, type) {
   setTimeout(function() { t.classList.remove('show'); }, 3000);
 }
 
-// ─── ADMIN ───
+// ─── ADMIN V2 ───
 var adminData = [];
-var chartPersonas, chartTipo, chartPrioridad, chartCategoria, chartEstado;
+var chartPersonas, chartTipo, chartPrioridad, chartEstado, chartTendencia;
 var adminUsuarios = [];
+var adminPeriodo = 'mes';
+var adminConfig = {};
+
+function initAdmin() {
+  setPeriodo('mes');
+  cargarTodosLosDatos();
+  cargarUsuariosFirestore();
+  cargarConfig();
+}
+
+function setPeriodo(p) {
+  adminPeriodo = p;
+  document.querySelectorAll('.periodo-btn').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('pbtn-' + p);
+  if (btn) btn.classList.add('active');
+
+  var rango = document.getElementById('rango-personalizado');
+  if (p === 'rango') {
+    rango.style.display = 'flex';
+    return;
+  } else {
+    rango.style.display = 'none';
+  }
+
+  var hoy = new Date();
+  var desde, hasta = new Date(hoy);
+  if (p === 'mes') {
+    desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  } else if (p === 'semana') {
+    desde = new Date(hoy); desde.setDate(hoy.getDate() - 6);
+  } else if (p === 'anio') {
+    desde = new Date(hoy.getFullYear(), 0, 1);
+  }
+
+  var label = '';
+  if (p === 'mes') label = desde.toLocaleDateString('es-CO', { month:'long', year:'numeric' });
+  else if (p === 'semana') label = 'Últimos 7 días';
+  else if (p === 'anio') label = 'Año ' + hoy.getFullYear();
+  document.getElementById('admin-periodo-label').textContent = label;
+
+  filtrarYRenderizar(desde, hasta);
+}
+
+function aplicarFiltro() {
+  var desde = document.getElementById('filtro-desde').value;
+  var hasta = document.getElementById('filtro-hasta').value;
+  if (!desde || !hasta) { showToast('Selecciona ambas fechas', 'error'); return; }
+  var d = new Date(desde + 'T00:00:00');
+  var h = new Date(hasta + 'T23:59:59');
+  document.getElementById('admin-periodo-label').textContent = desde + ' → ' + hasta;
+  filtrarYRenderizar(d, h);
+}
+
+function cargarTodosLosDatos() {
+  db.collection('solicitudes').get().then(function(snap) {
+    adminData = [];
+    snap.forEach(function(doc) { adminData.push({ id: doc.id, ...doc.data() }); });
+    setPeriodo(adminPeriodo);
+  });
+}
+
+function filtrarYRenderizar(desde, hasta) {
+  var filtered = adminData.filter(function(s) {
+    if (!s.fechaCreacion) return false;
+    var t = s.fechaCreacion.seconds * 1000;
+    return t >= desde.getTime() && t <= hasta.getTime();
+  });
+  filtered.sort(function(a,b){
+    return (b.fechaCreacion ? b.fechaCreacion.seconds : 0) - (a.fechaCreacion ? a.fechaCreacion.seconds : 0);
+  });
+  renderKPIs(filtered);
+  renderCharts(filtered, desde, hasta);
+  renderTabla(filtered.slice(0, 20));
+  document.getElementById('tabla-count-label').textContent = 'Mostrando ' + Math.min(filtered.length, 20) + ' de ' + filtered.length;
+}
+
+function renderKPIs(data) {
+  var total = data.length;
+  var completada = data.filter(function(s){ return s.estado==='Completada'; }).length;
+  var encamino   = data.filter(function(s){ return s.estado==='En camino'; }).length;
+  var pendiente  = data.filter(function(s){ return s.estado==='Pendiente'; }).length;
+  var empresarial = data.filter(function(s){ return s.tipo==='Empresarial'; }).length;
+  var personal   = data.filter(function(s){ return s.tipo==='Personal'; }).length;
+  var envio      = data.filter(function(s){ return s.categoria==='Envío'; }).length;
+  var recogida   = data.filter(function(s){ return s.categoria==='Recogida'; }).length;
+
+  var pct = function(n) { return total > 0 ? Math.round(n/total*100) : 0; };
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-total-sub').textContent = 'en el período seleccionado';
+  document.getElementById('kpi-completada').textContent = completada;
+  document.getElementById('kpi-completada-pct').textContent = pct(completada) + '% del total';
+  document.getElementById('kpi-encamino').textContent = encamino;
+  document.getElementById('kpi-encamino-pct').textContent = pct(encamino) + '% del total';
+  document.getElementById('kpi-pendiente').textContent = pendiente;
+  document.getElementById('kpi-pendiente-pct').textContent = pct(pendiente) + '% del total';
+  document.getElementById('kpi-empresarial').textContent = empresarial;
+  document.getElementById('kpi-empresarial-pct').textContent = pct(empresarial) + '% del total';
+  document.getElementById('kpi-personal').textContent = personal;
+  document.getElementById('kpi-personal-pct').textContent = pct(personal) + '% del total';
+  document.getElementById('kpi-envio').textContent = envio;
+  document.getElementById('kpi-envio-pct').textContent = pct(envio) + '% del total';
+  document.getElementById('kpi-recogida').textContent = recogida;
+  document.getElementById('kpi-recogida-pct').textContent = pct(recogida) + '% del total';
+
+  // Barras de progreso
+  var bars = [
+    ['bar-completada', pct(completada)],
+    ['bar-encamino',   pct(encamino)],
+    ['bar-pendiente',  pct(pendiente)],
+    ['bar-empresarial',pct(empresarial)],
+    ['bar-personal',   pct(personal)],
+    ['bar-envio',      pct(envio)],
+    ['bar-recogida',   pct(recogida)]
+  ];
+  bars.forEach(function(b){
+    var el = document.getElementById(b[0]);
+    if (el) el.style.width = b[1] + '%';
+  });
+}
+
+function renderCharts(data, desde, hasta) {
+  var C = { accent:'#00E5A0', danger:'#F85149', warning:'#E3B341', info:'#58A6FF', purple:'#BF7FFF', border:'#30363D', text2:'#8B949E', text3:'#484F58' };
+  Chart.defaults.color = C.text2;
+  Chart.defaults.font.family = 'Space Grotesk, sans-serif';
+
+  // ── Tendencia (línea por día) ──
+  var diasMap = {};
+  data.forEach(function(s) {
+    if (!s.fechaCreacion) return;
+    var d = new Date(s.fechaCreacion.seconds * 1000);
+    var key = d.toLocaleDateString('es-CO', { day:'2-digit', month:'short' });
+    diasMap[key] = (diasMap[key] || 0) + 1;
+  });
+  // Generar todas las fechas del rango
+  var labels = [], values = [];
+  if (desde && hasta) {
+    var cur = new Date(desde);
+    var diffDays = Math.round((hasta - desde) / 86400000);
+    var step = diffDays > 60 ? 7 : 1;
+    while (cur <= hasta) {
+      var key = cur.toLocaleDateString('es-CO', { day:'2-digit', month:'short' });
+      labels.push(key);
+      values.push(diasMap[key] || 0);
+      cur.setDate(cur.getDate() + step);
+    }
+  }
+  document.getElementById('chart-tendencia-label').textContent = values.reduce(function(a,b){return a+b;},0) + ' solicitudes';
+
+  if (chartTendencia) chartTendencia.destroy();
+  chartTendencia = new Chart(document.getElementById('chart-tendencia'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        borderColor: C.accent, backgroundColor: C.accent + '18',
+        borderWidth: 2, pointRadius: 3, pointBackgroundColor: C.accent,
+        fill: true, tension: 0.4
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: C.border + '55' }, ticks: { maxTicksLimit: 10, font: { size: 11 } } },
+        y: { grid: { color: C.border + '55' }, ticks: { stepSize: 1 }, beginAtZero: true }
+      }
+    }
+  });
+
+  // ── Estado (donut) ──
+  var pendCount = data.filter(function(s){ return s.estado==='Pendiente'; }).length;
+  var camCount  = data.filter(function(s){ return s.estado==='En camino'; }).length;
+  var compCount = data.filter(function(s){ return s.estado==='Completada'; }).length;
+  if (chartEstado) chartEstado.destroy();
+  chartEstado = new Chart(document.getElementById('chart-estado'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Pendiente','En camino','Completada'],
+      datasets: [{ data:[pendCount,camCount,compCount], backgroundColor:[C.warning+'CC',C.info+'CC',C.accent+'CC'], borderColor:[C.warning,C.info,C.accent], borderWidth:1 }]
+    },
+    options: { plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, padding:10, font:{size:11} } } }, cutout:'68%' }
+  });
+
+  // ── Por persona (barras horizontales) ──
+  var personCount = {};
+  data.forEach(function(s){ personCount[s.solicitante] = (personCount[s.solicitante]||0)+1; });
+  var personEntries = Object.entries(personCount).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10);
+  if (chartPersonas) chartPersonas.destroy();
+  chartPersonas = new Chart(document.getElementById('chart-personas'), {
+    type: 'bar',
+    data: {
+      labels: personEntries.map(function(e){ return e[0]; }),
+      datasets: [{ data: personEntries.map(function(e){ return e[1]; }), backgroundColor: C.accent+'99', borderColor: C.accent, borderWidth:1, borderRadius:4 }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend:{ display:false } },
+      scales: {
+        x: { grid:{ color:C.border+'55' }, ticks:{ stepSize:1 } },
+        y: { grid:{ display:false }, ticks:{ font:{size:11} } }
+      }
+    }
+  });
+
+  // ── Tipo (donut) ──
+  var empC = data.filter(function(s){ return s.tipo==='Empresarial'; }).length;
+  var perC = data.filter(function(s){ return s.tipo==='Personal'; }).length;
+  if (chartTipo) chartTipo.destroy();
+  chartTipo = new Chart(document.getElementById('chart-tipo'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Empresarial','Personal'],
+      datasets:[{ data:[empC,perC], backgroundColor:[C.info+'CC',C.purple+'CC'], borderColor:[C.info,C.purple], borderWidth:1 }]
+    },
+    options: { plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, padding:10, font:{size:11} } } }, cutout:'68%' }
+  });
+
+  // ── Prioridad (donut) ──
+  var altaC  = data.filter(function(s){ return s.prioridad==='Alta'; }).length;
+  var mediaC = data.filter(function(s){ return s.prioridad==='Media'; }).length;
+  if (chartPrioridad) chartPrioridad.destroy();
+  chartPrioridad = new Chart(document.getElementById('chart-prioridad'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Alta','Media'],
+      datasets:[{ data:[altaC,mediaC], backgroundColor:[C.danger+'CC',C.warning+'CC'], borderColor:[C.danger,C.warning], borderWidth:1 }]
+    },
+    options: { plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, padding:10, font:{size:11} } } }, cutout:'68%' }
+  });
+}
+
+function renderTabla(data) {
+  var statusClass = { 'Pendiente':'status-pendiente','En camino':'status-en-camino','Completada':'status-completada' };
+  var priClass = { 'Alta':'tag-alta','Media':'tag-media' };
+  var body = document.getElementById('tabla-body');
+  if (data.length === 0) {
+    body.innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--text-3);padding:32px">Sin solicitudes en el período seleccionado</td></tr>';
+    return;
+  }
+  body.innerHTML = data.map(function(s) {
+    var fecha = s.fechaCreacion ? new Date(s.fechaCreacion.seconds*1000).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    return '<tr>' +
+      '<td class="tabla-id">' + (s.consecutivo ? '#'+s.consecutivo : s.id.slice(-6).toUpperCase()) + '</td>' +
+      '<td style="font-size:12px;color:var(--text-2);white-space:nowrap">' + fecha + '</td>' +
+      '<td class="tabla-nombre">' + (s.solicitante||'—') + '</td>' +
+      '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (s.contacto||'—') + '</td>' +
+      '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-2)">' + (s.direccion||'—') + '</td>' +
+      '<td style="color:var(--text-2)">' + (s.municipio||'—') + '</td>' +
+      '<td><span class="tag ' + (s.tipo==='Empresarial'?'tag-empresarial':'tag-personal') + '">' + (s.tipo||'—') + '</span></td>' +
+      '<td><span class="tag ' + (priClass[s.prioridad]||'tag-media') + '">' + (s.prioridad||'—') + '</span></td>' +
+      '<td><span class="tag ' + (s.categoria==='Envío'?'tag-envio':'tag-recogida') + '">' + (s.categoria||'—') + '</span></td>' +
+      '<td><span class="status-pill ' + (statusClass[s.estado]||'status-pendiente') + '">' + (s.estado||'—') + '</span></td>' +
+      '<td style="font-family:JetBrains Mono,monospace;font-size:12px;color:var(--text-2)">' + (s.horaInicio||'—') + '</td>' +
+      '<td style="font-family:JetBrains Mono,monospace;font-size:12px;color:var(--text-2)">' + (s.horaFin||'—') + '</td>' +
+      '<td><a href="https://maps.google.com/?q=' + encodeURIComponent((s.direccion||'') + ' ' + (s.municipio||'')) + '" target="_blank" style="color:var(--info);font-size:14px;text-decoration:none">📍</a></td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ─── CONFIGURACIÓN ───
+function abrirConfig() {
+  var panel = document.getElementById('config-panel');
+  var overlay = document.getElementById('config-overlay');
+  panel.style.display = 'block';
+  overlay.style.display = 'block';
+  setTimeout(function(){ panel.style.transform = 'translateX(0)'; }, 10);
+  renderConfigUsuarios();
+}
+
+function cerrarConfig() {
+  var panel = document.getElementById('config-panel');
+  var overlay = document.getElementById('config-overlay');
+  panel.style.transform = 'translateX(100%)';
+  setTimeout(function(){
+    panel.style.display = 'none';
+    overlay.style.display = 'none';
+  }, 300);
+}
+
+function cargarConfig() {
+  db.collection('config').doc('ajustes').get().then(function(doc) {
+    if (doc.exists) {
+      adminConfig = doc.data();
+      // Aplicar config en tiempo real
+      if (adminConfig.pinMensajero) window._pinMensajeroLive = adminConfig.pinMensajero;
+      if (adminConfig.pinAdmin) window._pinAdminLive = adminConfig.pinAdmin;
+      if (adminConfig.tgToken) window._tgTokenLive = adminConfig.tgToken;
+      if (adminConfig.tgChatId) window._tgChatIdLive = adminConfig.tgChatId;
+    }
+  });
+}
+
+function guardarConfig() {
+  var cfg = {
+    nombreMensajero: document.getElementById('cfg-nombre-mensajero').value.trim(),
+    pinMensajero:    document.getElementById('cfg-pin-mensajero').value.trim(),
+    pinAdmin:        document.getElementById('cfg-pin-admin').value.trim(),
+    whatsapp:        document.getElementById('cfg-whatsapp').value.trim(),
+    tgToken:         document.getElementById('cfg-tg-token').value.trim(),
+    tgChatId:        document.getElementById('cfg-tg-chatid').value.trim(),
+    emailSender:     document.getElementById('cfg-email-sender').value.trim()
+  };
+
+  // Validar PINs
+  if (cfg.pinMensajero && (cfg.pinMensajero.length < 4)) { showToast('PIN mensajero mínimo 4 dígitos', 'error'); return; }
+  if (cfg.pinAdmin && (cfg.pinAdmin.length < 4)) { showToast('PIN admin mínimo 4 dígitos', 'error'); return; }
+
+  db.collection('config').doc('ajustes').set(cfg).then(function() {
+    adminConfig = cfg;
+    // Actualizar PINs en memoria para sesión actual
+    if (cfg.pinMensajero) window._pinMensajeroLive = cfg.pinMensajero;
+    if (cfg.pinAdmin) window._pinAdminLive = cfg.pinAdmin;
+    if (cfg.tgToken) window._tgTokenLive = cfg.tgToken;
+    if (cfg.tgChatId) window._tgChatIdLive = cfg.tgChatId;
+    cerrarConfig();
+    showToast('✓ Configuración guardada', 'success');
+  }).catch(function(e){
+    showToast('Error al guardar', 'error'); console.error(e);
+  });
+}
+
+function renderConfigUsuarios() {
+  // Prefill campos con config actual
+  if (adminConfig.nombreMensajero) document.getElementById('cfg-nombre-mensajero').value = adminConfig.nombreMensajero;
+  if (adminConfig.pinMensajero) document.getElementById('cfg-pin-mensajero').value = adminConfig.pinMensajero;
+  if (adminConfig.pinAdmin) document.getElementById('cfg-pin-admin').value = adminConfig.pinAdmin;
+  if (adminConfig.whatsapp) document.getElementById('cfg-whatsapp').value = adminConfig.whatsapp;
+  if (adminConfig.tgToken) document.getElementById('cfg-tg-token').value = adminConfig.tgToken;
+  if (adminConfig.tgChatId) document.getElementById('cfg-tg-chatid').value = adminConfig.tgChatId;
+  if (adminConfig.emailSender) document.getElementById('cfg-email-sender').value = adminConfig.emailSender;
+
+  // Lista de usuarios
+  var grid = document.getElementById('config-usuarios-grid');
+  if (!grid) return;
+  grid.innerHTML = USUARIOS.map(function(u, i) {
+    return '<div class="cfg-usuario-item">' +
+      '<div>' +
+        '<div class="cfg-usuario-nombre">' + u + '</div>' +
+        '<div class="cfg-usuario-correo">' + (DIRECTORIO_CORREOS[u] || 'sin correo') + '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px">' +
+        '<button onclick="abrirModalUsuario(' + i + ')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px" title="Editar">✏</button>' +
+        '<button onclick="eliminarUsuario(' + i + ')" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px" title="Eliminar">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function cfgAgregarUsuario() {
+  var input = document.getElementById('cfg-nuevo-usuario');
+  var nombre = input.value.trim();
+  if (!nombre) { showToast('Escribe un nombre', 'error'); return; }
+  if (USUARIOS.indexOf(nombre) > -1) { showToast('Ya existe', 'error'); return; }
+  USUARIOS.push(nombre);
+  USUARIOS.sort();
+  DIRECTORIO_CORREOS[nombre] = '';
+  adminUsuarios = USUARIOS.map(function(u){ return { nombre:u, correo:DIRECTORIO_CORREOS[u]||'' }; });
+  input.value = '';
+  guardarUsuariosFirestore();
+  renderConfigUsuarios();
+  showToast('✓ ' + nombre + ' agregado — edita su correo', 'success');
+}
 
 function initAdmin() {
   var hoy = new Date();
