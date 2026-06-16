@@ -1054,6 +1054,28 @@ const DIRECTORIO_CORREOS = {
 firebase.initializeApp(FIREBASE_CONFIG);
 var db = firebase.firestore();
 
+// ─── CARGAR USUARIOS DE FIRESTORE AL INICIAR ───
+// Esto asegura que el dropdown del solicitante siempre refleje
+// la lista actualizada desde el panel de administración
+(function() {
+  db.collection('config').doc('usuarios').get().then(function(doc) {
+    if (doc.exists && doc.data().lista && doc.data().lista.length > 0) {
+      var lista = doc.data().lista;
+      // Vaciar y reemplazar listas en memoria
+      USUARIOS.length = 0;
+      Object.keys(DIRECTORIO_CORREOS).forEach(function(k) { delete DIRECTORIO_CORREOS[k]; });
+      lista.forEach(function(u) {
+        USUARIOS.push(u.nombre);
+        DIRECTORIO_CORREOS[u.nombre] = u.correo || '';
+      });
+      USUARIOS.sort();
+      console.log('✓ Usuarios cargados de Firestore:', USUARIOS.length);
+    }
+  }).catch(function(e) {
+    console.warn('Usando lista local de usuarios:', e);
+  });
+})();
+
 // ─── DEEP LINK ───
 (function() {
   var params = new URLSearchParams(window.location.search);
