@@ -1138,6 +1138,34 @@ function showUserSelect() {
   var existing = document.getElementById('user-select-wrap');
   if (existing) existing.remove();
 
+  // Ocultar pad y mostrar estado de carga
+  document.getElementById('pin-label').textContent = 'Cargando lista...';
+  document.querySelector('.pin-pad').style.display = 'none';
+  document.getElementById('pin-display').style.display = 'none';
+
+  // Siempre consultar Firestore para tener la lista más actualizada
+  db.collection('config').doc('usuarios').get().then(function(doc) {
+    if (doc.exists && doc.data().lista && doc.data().lista.length > 0) {
+      var lista = doc.data().lista;
+      USUARIOS.length = 0;
+      Object.keys(DIRECTORIO_CORREOS).forEach(function(k){ delete DIRECTORIO_CORREOS[k]; });
+      lista.forEach(function(u) {
+        USUARIOS.push(u.nombre);
+        DIRECTORIO_CORREOS[u.nombre] = u.correo || '';
+      });
+      USUARIOS.sort();
+    }
+    _construirDropdown();
+  }).catch(function() {
+    _construirDropdown(); // fallback a lista en memoria
+  });
+}
+
+function _construirDropdown() {
+  var area = document.getElementById('pin-area');
+  var existing = document.getElementById('user-select-wrap');
+  if (existing) existing.remove();
+
   var wrap = document.createElement('div');
   wrap.id = 'user-select-wrap';
   wrap.style.cssText = 'margin-bottom:16px;';
@@ -1156,10 +1184,7 @@ function showUserSelect() {
   wrap.appendChild(sel);
   area.insertBefore(wrap, area.querySelector('.pin-display'));
 
-  // Solicitante no necesita PIN, botón directo
   document.getElementById('pin-label').textContent = 'Selecciona tu nombre para entrar';
-  document.querySelector('.pin-pad').style.display = 'none';
-  document.getElementById('pin-display').style.display = 'none';
 
   var btnEntrar = document.createElement('button');
   btnEntrar.className = 'btn-submit';
