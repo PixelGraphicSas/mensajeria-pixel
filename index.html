@@ -1781,12 +1781,13 @@ var adminPeriodo = 'mes';
 var adminConfig = {};
 
 function initAdmin() {
-  cargarTodosLosDatos(); // carga datos y luego llama setPeriodo internamente
-  cargarUsuariosFirestore();
-  cargarConfig();
-  // Mostrar label del período inmediatamente
   var hoy = new Date();
   document.getElementById('admin-periodo-label').textContent = hoy.toLocaleDateString('es-CO', { month:'long', year:'numeric' });
+  cargarTodosLosDatos();
+  cargarUsuariosFirestore(function() {
+    _dibujarGrilla(); // actualiza la grilla una vez cargados de Firestore
+  });
+  cargarConfig();
 }
 
 function setPeriodo(p) {
@@ -2138,28 +2139,11 @@ function renderConfigUsuarios() {
 }
 
 function cfgEditarUsuario(i) {
-  // Sincronizar adminUsuarios con USUARIOS actual
-  adminUsuarios = USUARIOS.map(function(u){ return { nombre:u, correo:DIRECTORIO_CORREOS[u]||'' }; });
-  if (i < 0 || i >= adminUsuarios.length) return;
-  modalEditIdx = i;
-  document.getElementById('modal-nombre').value = adminUsuarios[i].nombre;
-  document.getElementById('modal-correo').value = adminUsuarios[i].correo || '';
-  // Abrir modal (fuera del panel config)
-  document.getElementById('modal-usuario').style.display = 'flex';
+  abrirModalUsuario(i); // usa la misma función unificada
 }
 
 function cfgEliminarUsuario(i) {
-  adminUsuarios = USUARIOS.map(function(u){ return { nombre:u, correo:DIRECTORIO_CORREOS[u]||'' }; });
-  if (i < 0 || i >= adminUsuarios.length) return;
-  if (!confirm('¿Eliminar a ' + adminUsuarios[i].nombre + ' de la lista?')) return;
-  var nombre = adminUsuarios[i].nombre;
-  var idx = USUARIOS.indexOf(nombre);
-  if (idx > -1) USUARIOS.splice(idx, 1);
-  delete DIRECTORIO_CORREOS[nombre];
-  adminUsuarios.splice(i, 1);
-  guardarUsuariosFirestore();
-  renderConfigUsuarios();
-  showToast('Usuario eliminado', 'success');
+  eliminarUsuario(i); // usa la misma función unificada
 }
 
 function cfgAgregarUsuario() {
@@ -2238,24 +2222,74 @@ function renderUsuariosAdmin() {
   _dibujarGrilla();
 }
 
+// ─── PERSISTENCIA USUARIOS EN FIRESTORE ───
+function guardarUsuariosFirestore() {
+  var lista = USUARIOS.map(function(u) {
+    return { nombre: u, correo: DIRECTORIO_CORREOS[u] || '' };
+  });
+  db.collection('config').doc('usuarios').set({ lista: lista })
+    .then(function() { console.log('✓ Usuarios guardados en Firestore'); })
+    .catch(function(e) { console.error('Error guardando usuarios:', e); showToast('Error al guardar', 'error'); });
+}
+
+function cargarUsuariosFirestore(callback) {
+  db.collection('config').doc('usuarios').get().then(function(doc) {
+    if (doc.exists && doc.data().lista && doc.data().lista.length > 0) {
+      var lista = doc.data().lista;
+      // Reemplazar lista en memoria con la de Firestore
+      USUARIOS.length = 0;
+      Object.keys(DIRECTORIO_CORREOS).forEach(function(k) { delete DIRECTORIO_CORREOS[k]; });
+      lista.forEach(function(u) {
+        USUARIOS.push(u.nombre);
+        DIRECTORIO_CORREOS[u.nombre] = u.correo || '';
+      });
+      USUARIOS.sort();
+    }
+    adminUsuarios = USUARIOS.map(function(u) {
+      return { nombre: u, correo: DIRECTORIO_CORREOS[u] || '' };
+    });
+    if (callback) callback();
+  }).catch(function(e) {
+    console.error('Error cargando usuarios:', e);
+    adminUsuarios = USUARIOS.map(function(u) {
+      return { nombre: u, correo: DIRECTORIO_CORREOS[u] || '' };
+    });
+    if (callback) callback();
+  });
+}
+
+function _sincronizarMemoria() {
+  // Sincroniza adminUsuarios con USUARIOS/DIRECTORIO_CORREOS
+  adminUsuarios = USUARIOS.map(function(u) {
+    return { nombre: u, correo: DIRECTORIO_CORREOS[u] || '' };
+  });
+  adminUsuarios.sort(function(a,b) { return a.nombre.localeCompare(b.nombre); });
+}
+
 function _dibujarGrilla() {
+  _sincronizarMemoria();
   var grid = document.getElementById('usuarios-grid');
-  if (!grid) return;
-  grid.innerHTML = adminUsuarios.map(function(u, i) {
-    return '<div class="usuario-item">' +
-      '<div>' +
-        '<div class="usuario-nombre">' + u.nombre + '</div>' +
-        '<div style="font-size:11px;color:var(--text-3);font-family:JetBrains Mono,monospace;margin-top:2px">' + (u.correo || 'sin correo') + '</div>' +
-      '</div>' +
-      '<div style="display:flex;gap:6px">' +
-        '<button class="btn-add-user" style="padding:5px 10px;font-size:12px" onclick="abrirModalUsuario(' + i + ')" title="Editar">✏</button>' +
-        '<button class="btn-del-user" onclick="eliminarUsuario(' + i + ')" title="Eliminar">✕</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
+  if (grid) {
+    grid.innerHTML = adminUsuarios.map(function(u, i) {
+      return '<div class="usuario-item">' +
+        '<div>' +
+          '<div class="usuario-nombre">' + u.nombre + '</div>' +
+          '<div style="font-size:11px;color:var(--text-3);font-family:JetBrains Mono,monospace;margin-top:2px">' + (u.correo || 'sin correo') + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn-add-user" style="padding:5px 10px;font-size:12px" onclick="abrirModalUsuario(' + i + ')" title="Editar">✏</button>' +
+          '<button class="btn-del-user" onclick="eliminarUsuario(' + i + ')" title="Eliminar">✕</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+  // También actualizar panel config si está abierto
+  renderConfigUsuarios();
 }
 
 function abrirModalUsuario(idx) {
+  _sincronizarMemoria();
+  if (idx < 0 || idx >= adminUsuarios.length) return;
   modalEditIdx = idx;
   document.getElementById('modal-nombre').value = adminUsuarios[idx].nombre;
   document.getElementById('modal-correo').value = adminUsuarios[idx].correo || '';
@@ -2272,36 +2306,34 @@ function guardarUsuario() {
   var nuevoCorreo = document.getElementById('modal-correo').value.trim();
   if (!nuevoNombre) { showToast('El nombre no puede estar vacío', 'error'); return; }
   if (!nuevoCorreo) { showToast('El correo no puede estar vacío', 'error'); return; }
+  if (modalEditIdx < 0 || modalEditIdx >= adminUsuarios.length) return;
 
   var nombreViejo = adminUsuarios[modalEditIdx].nombre;
 
-  // Actualizar USUARIOS y DIRECTORIO_CORREOS en memoria
-  var idxUsuarios = USUARIOS.indexOf(nombreViejo);
-  if (idxUsuarios > -1) USUARIOS.splice(idxUsuarios, 1);
+  // Actualizar en memoria
+  var idxU = USUARIOS.indexOf(nombreViejo);
+  if (idxU > -1) USUARIOS.splice(idxU, 1);
   delete DIRECTORIO_CORREOS[nombreViejo];
-
   USUARIOS.push(nuevoNombre);
   USUARIOS.sort();
   DIRECTORIO_CORREOS[nuevoNombre] = nuevoCorreo;
 
-  adminUsuarios[modalEditIdx] = { nombre: nuevoNombre, correo: nuevoCorreo };
-  adminUsuarios.sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
-
   cerrarModalUsuario();
-  _dibujarGrilla();
   guardarUsuariosFirestore();
+  _dibujarGrilla();
   showToast('✓ ' + nuevoNombre + ' actualizado', 'success');
 }
 
 function eliminarUsuario(idx) {
+  _sincronizarMemoria();
+  if (idx < 0 || idx >= adminUsuarios.length) return;
   if (!confirm('¿Eliminar a ' + adminUsuarios[idx].nombre + ' de la lista?')) return;
   var nombre = adminUsuarios[idx].nombre;
-  var idxUsuarios = USUARIOS.indexOf(nombre);
-  if (idxUsuarios > -1) USUARIOS.splice(idxUsuarios, 1);
+  var idxU = USUARIOS.indexOf(nombre);
+  if (idxU > -1) USUARIOS.splice(idxU, 1);
   delete DIRECTORIO_CORREOS[nombre];
-  adminUsuarios.splice(idx, 1);
-  _dibujarGrilla();
   guardarUsuariosFirestore();
+  _dibujarGrilla();
   showToast('Usuario eliminado', 'success');
 }
 
@@ -2313,11 +2345,9 @@ function agregarUsuario() {
   USUARIOS.push(nombre);
   USUARIOS.sort();
   DIRECTORIO_CORREOS[nombre] = '';
-  adminUsuarios = USUARIOS.map(function(u){ return { nombre: u, correo: DIRECTORIO_CORREOS[u] || '' }; });
-  adminUsuarios.sort(function(a,b){ return a.nombre.localeCompare(b.nombre); });
   input.value = '';
-  _dibujarGrilla();
   guardarUsuariosFirestore();
+  _dibujarGrilla();
   showToast('✓ ' + nombre + ' agregado — recuerda editar su correo', 'success');
 }
 </script>
